@@ -1,0 +1,5 @@
+.vscode/
+bin/
+obj/
+src/OutlookResiever/**/*.sieve
+src/OutlookResiever/**/*.json

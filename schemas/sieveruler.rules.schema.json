@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sieveruler:rules:v2",
+  "title": "Transiever.SieveRuler rules document",
+  "type": "object",
+  "required": ["schemaVersion", "sourceId", "rules"],
+  "properties": {
+    "$schema": {
+      "const": "urn:sieveruler:rules:v2"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["name", "targetFolder", "conditionMode", "conditions", "ownership", "requiredCapabilities"],
+      "properties": {
+        "id": {
+          "type": ["string", "null"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "targetFolder": {
+          "type": "string"
+        },
+        "conditionMode": {
+          "enum": ["All", "Any"]
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ownership": {
+          "enum": ["Managed", "External"]
+        },
+        "originalOrder": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": ["type", "values"],
+      "properties": {
+        "type": {
+          "enum": [
+            "SenderContains",
+            "ReceiverContains",
+            "SubjectContains",
+            "BodyContains",
+            "SubjectOrBodyContains"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["severity", "code", "message"],
+      "properties": {
+        "severity": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>Transiever.SieveRuler</Title>
+    <Description>Provider-neutral JSON rules, optimization, Sieve reconciliation, and deployment engine.</Description>
+    <PackageTags>sieve;rules;json;managesieve;email</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Temporary until Transiever is published as a versioned NuGet package. -->
+    <ProjectReference Include="..\..\..\ManageSieve\src\Transiever.ManageSieve\Transiever.ManageSieve.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\schemas\sieveruler.rules.schema.json"
+          Pack="true"
+          PackagePath="schemas\" />
+  </ItemGroup>
+
+</Project>

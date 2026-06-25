@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Transiever.SieveRuler.Cli.UnitTest/Transiever.SieveRuler.Cli.UnitTest.csproj" />
+    <Project Path="src/Transiever.SieveRuler.Cli/Transiever.SieveRuler.Cli.csproj" />
+    <Project Path="src/Transiever.SieveRuler.IntegrationTest/Transiever.SieveRuler.IntegrationTest.csproj" />
+    <Project Path="src/Transiever.SieveRuler.UnitTest/Transiever.SieveRuler.UnitTest.csproj" />
+    <Project Path="src/Transiever.SieveRuler/Transiever.SieveRuler.csproj" />
+  </Folder>
+</Solution>
