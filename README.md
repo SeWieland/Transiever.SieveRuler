@@ -1,18 +1,26 @@
 # Transiever.SieveRuler
 
-Cross-platform .NET library and CLI for turning a provider-neutral JSON rule
-document into Sieve, optimizing compatible rules, reconciling an existing
-script, and safely deploying changes through ManageSieve.
+Cross-platform .NET library and CLI for turning a provider-neutral JSON rule document into Sieve,
+optimizing compatible rules, reconciling existing scripts, and deploying changes safely through ManageSieve.
 
-`Transiever.SieveRuler` is intended as the common engine behind source adapters
-such as `Transiever.OutlookResiever` and future Thunderbird or
-provider-specific importers.
+`Transiever.SieveRuler` is the common engine behind source adapters such as `Transiever.OutlookResiever`,
+and it is also intended for future Thunderbird or other provider-specific importers.
 
-The rule model and generated Sieve are provider-agnostic in intent, but current
-provider UI metadata has been tested and validated against mailbox.org and the
-Open-Xchange implementation it uses.
+The rule model and generated Sieve are provider-agnostic in intent,
+but provider UI metadata has only been tested and validated against [mailbox.org] and the [Open-Xchange] implementation it uses.
 
-## Projects
+## Documentation Map
+
+Start here, then follow the component-specific guides:
+
+* [CLI guide](src/Transiever.SieveRuler.Cli/README.md) for commands, environment variables, preview artifacts, deployment, rollback, and history workflows.
+* [library guide](src/Transiever.SieveRuler/README.md) for the public model, serializer, reconciliation, and typed workflow APIs.
+* [architecture](docs/architecture.md) for system boundaries and responsibility split.
+* [rules and metadata](docs/rules-and-metadata.md) for the rules contract, composition, and generated `## Flag:` compatibility rules.
+* [synchronization policy](docs/synchronization-policy.md) for preview, deployment, rollback, and retained-history behavior.
+* [rules schema](schemas/sieveruler.rules.schema.json) for the v2 JSON contract.
+
+## Repository Layout
 
 ```text
 src/Transiever.SieveRuler/                 Packable library
@@ -22,9 +30,17 @@ src/Transiever.SieveRuler.Cli.UnitTest/    CLI tests
 src/Transiever.SieveRuler.IntegrationTest/ Docker-backed ManageSieve test
 ```
 
-The public JSON contract is
-[`schemas/sieveruler.rules.schema.json`](schemas/sieveruler.rules.schema.json)
-with schema ID `urn:sieveruler:rules:v2`.
+The public JSON contract is [`schemas/sieveruler.rules.schema.json`](schemas/sieveruler.rules.schema.json).
+Its schema ID is `urn:sieveruler:rules:v2`.
+
+## Feature Summary
+
+* Provider-neutral rules schema and serializer with legacy migration support.
+* Strict Sieve import, source-aware reconciliation, and compatible-rule optimization.
+* ManageSieve preview and deployment workflows with active-script-preserving defaults.
+* Rollback and retained-history operations for SieveRuler-managed deployments.
+
+Operational details intentionally live in the linked component guides instead of being repeated here.
 
 ## Development
 
@@ -34,24 +50,10 @@ dotnet test Transiever.SieveRuler.slnx
 dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 ```
 
-Preview writes separate review artifacts for ownership state
-(`reconciled-rules.json`) and rendered candidate rules
-(`candidate-rules.json`). ManageSieve preview preserves the current active
-script name by default, deployment creates a server-side backup before
-replacing that active script, and `rollback` restores the backup or reactivates
-the previous source script for legacy plans. Generated managed Sieve includes
-Open-Xchange-compatible `## Flag:` comments so provider UIs can display rule
-names, and deploy prunes inactive SieveRuler history by default while retaining
-the oldest backup and the newest 5 history scripts. `srtx history` can list,
-show, restore, delete, and prune retained SieveRuler versions, including the
-original backup or the original no-active state when that marker exists. Manual
-history prune deletes all inactive SieveRuler-owned history while keeping the
-active script and non-SieveRuler scripts.
+## Publication Note
 
-The current development build references the sibling `Transiever.ManageSieve`
-project. This
-must become a versioned package reference before independent publication.
+The current development build references the sibling `Transiever.ManageSieve` project.
+This must become a versioned package reference before independent publication.
 
-See the [CLI guide](src/Transiever.SieveRuler.Cli/README.md), the
-[library guide](src/Transiever.SieveRuler/README.md), and the
-[architecture](docs/architecture.md).
+[mailbox.org]: https://mailbox.org/
+[Open-Xchange]: https://www.open-xchange.com/
