@@ -30,6 +30,8 @@ src/Transiever.SieveRuler.Cli.UnitTest/    CLI tests
 src/Transiever.SieveRuler.IntegrationTest/ Docker-backed ManageSieve test
 ```
 
+The Docker-backed integration test uses a pinned Dovecot/Pigeonhole container and pins the container certificate through the ManageSieve internal test seam.
+
 The public JSON contract is [`schemas/sieveruler.rules.schema.json`](schemas/sieveruler.rules.schema.json).
 Its schema ID is `urn:sieveruler:rules:v2`.
 

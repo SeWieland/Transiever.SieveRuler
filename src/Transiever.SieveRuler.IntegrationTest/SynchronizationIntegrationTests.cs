@@ -33,7 +33,7 @@ public sealed class SynchronizationIntegrationTests
                 .WithImage(image)
                 .WithPortBinding(4190, true)
                 .WithWaitStrategy(
-                    Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(4190))
+                    Wait.ForUnixContainer().UntilExternalTcpPortIsAvailable(4190))
                 .WithCleanUp(true)
                 .Build();
             await container.StartAsync(cancellationToken);
@@ -262,7 +262,7 @@ public sealed class SynchronizationIntegrationTests
         CancellationToken cancellationToken)
     {
         ExecResult certificate = await container.ExecAsync(
-            ["sh", "-c", "base64 -w0 /etc/dovecot/private/srtx-test.crt"],
+            ["sh", "-c", "base64 -w0 /etc/dovecot/cert.pem"],
             cancellationToken);
         using X509Certificate2 parsed = X509Certificate2.CreateFromPem(
             System.Text.Encoding.ASCII.GetString(

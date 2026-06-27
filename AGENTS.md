@@ -66,6 +66,8 @@ dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 ```
 
 Docker integration tests skip when Docker is unavailable.
+They build a pinned Dovecot/Pigeonhole image, use the image's bundled test certificate through the ManageSieve internal certificate-validation seam,
+and wait on the mapped host port rather than requiring extra socket tooling inside the container.
 Keep the library and CLI independently documented.
 Update this file, both READMEs, architecture, JSON schema, tests, and changelog when their contracts change.
 
