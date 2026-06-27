@@ -2,6 +2,9 @@ using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Reads and writes the Transiever rule document format.
+/// </summary>
 public interface IRuleSerializer
 {
     Task SaveAsync(

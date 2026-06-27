@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Models;
 
+/// <summary>
+/// A single rule condition with one or more string values.
+/// </summary>
 public sealed record RuleCondition
 {
     [JsonPropertyName("type")]

@@ -3,12 +3,18 @@ using Transiever.ManageSieve;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Transport security options used by SieveRuler's ManageSieve gateway.
+/// </summary>
 public enum SieveConnectionSecurity
 {
     StartTlsRequired,
     ImplicitTls
 }
 
+/// <summary>
+/// Connection settings for a ManageSieve server.
+/// </summary>
 public sealed record SieveServerConfiguration(
     string Host,
     int Port,
@@ -19,6 +25,9 @@ public sealed record SieveServerConfiguration(
     public const int DefaultPort = 4190;
 }
 
+/// <summary>
+/// Snapshot of the remote ManageSieve state returned by the server.
+/// </summary>
 public sealed record RemoteSieveState
 {
     public required string ActiveScriptName { get; init; }
@@ -32,6 +41,9 @@ public sealed record RemoteSieveState
     public required ManageSieveCapabilities Capabilities { get; init; }
 }
 
+/// <summary>
+/// Low-level connection to a ManageSieve server.
+/// </summary>
 public interface ISieveServerConnection : IAsyncDisposable
 {
     Task<RemoteSieveState> ReadStateAsync(CancellationToken cancellationToken);
@@ -59,6 +71,9 @@ public interface ISieveServerConnection : IAsyncDisposable
     Task DeleteScriptAsync(string scriptName, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Creates low-level ManageSieve connections.
+/// </summary>
 public interface ISieveServerConnectionFactory
 {
     Task<ISieveServerConnection> ConnectAsync(
@@ -66,6 +81,9 @@ public interface ISieveServerConnectionFactory
         CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Default ManageSieve connection factory used by SieveRuler.
+/// </summary>
 public sealed class ManageSieveServerConnectionFactory(
     IManageSieveClientFactory clientFactory) : ISieveServerConnectionFactory
 {

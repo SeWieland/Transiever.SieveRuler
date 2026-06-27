@@ -6,6 +6,9 @@ using System.Text.Json;
 
 namespace Transiever.SieveRuler.Application;
 
+/// <summary>
+/// High-level workflow for previewing, deploying, rolling back, and managing retained history.
+/// </summary>
 public interface ISieveSynchronizationWorkflow
 {
     Task<PreviewSynchronizationResult> PreviewAsync(
@@ -41,6 +44,9 @@ public interface ISieveSynchronizationWorkflow
         CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Operator interaction required by preview when compatible rules may be adopted.
+/// </summary>
 public interface ISynchronizationInteraction
 {
     bool ResolveAdoption(bool? explicitChoice, int compatibleRuleCount);

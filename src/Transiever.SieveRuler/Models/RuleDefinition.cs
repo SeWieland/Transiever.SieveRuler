@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Models;
 
+/// <summary>
+/// A single abstract mailbox rule in the Transiever rule model.
+/// </summary>
 public sealed class RuleDefinition
 {
     [JsonPropertyName("id")]
@@ -36,6 +39,9 @@ public sealed class RuleDefinition
     public List<string> RequiredCapabilities { get; init; } = [];
 }
 
+/// <summary>
+/// Ownership classification for a rule in a composed document.
+/// </summary>
 public enum RuleOwnership
 {
     Managed,

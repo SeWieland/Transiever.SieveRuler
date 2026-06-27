@@ -2,6 +2,9 @@ using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Result of reconciling source rules with imported server state.
+/// </summary>
 public sealed record RuleReconciliationResult
 {
     public IReadOnlyList<RuleDefinition> OwnedSourceRules { get; init; } = [];
@@ -13,6 +16,9 @@ public sealed record RuleReconciliationResult
     public IReadOnlyList<ReconciliationDiagnostic> Diagnostics { get; init; } = [];
 }
 
+/// <summary>
+/// Reconciles source rules with imported server state.
+/// </summary>
 public interface IRuleReconciler
 {
     RuleReconciliationResult Reconcile(

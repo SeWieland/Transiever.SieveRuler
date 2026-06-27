@@ -3,6 +3,9 @@ using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Default rule optimizer.
+/// </summary>
 public sealed class RuleOptimizer : IRuleOptimizer
 {
     public RuleOptimizationResult Optimize(

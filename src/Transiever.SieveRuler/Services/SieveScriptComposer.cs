@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Final composed Sieve script and its supporting metadata.
+/// </summary>
 public sealed record SieveCompositionResult
 {
     public required byte[] Content { get; init; }
@@ -16,6 +19,9 @@ public sealed record SieveCompositionResult
     public bool IsBlocked { get; init; }
 }
 
+/// <summary>
+/// Combines imported server content and reconciled rules into a final script.
+/// </summary>
 public interface ISieveScriptComposer
 {
     SieveCompositionResult Compose(

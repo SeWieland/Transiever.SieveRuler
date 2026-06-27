@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Generates Sieve from reconciled rule definitions.
+/// </summary>
 public sealed class SieveGenerator : ISieveGenerator
 {
     public string Generate(

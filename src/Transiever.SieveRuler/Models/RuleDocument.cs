@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Models;
 
+/// <summary>
+/// Root JSON document for Transiever rules and reconciliation metadata.
+/// </summary>
 public sealed record RuleDocument
 {
     public const int CurrentSchemaVersion = 1;
@@ -24,6 +27,9 @@ public sealed record RuleDocument
     public List<ReconciliationDiagnostic> Diagnostics { get; init; } = [];
 }
 
+/// <summary>
+/// Diagnostic information attached to a rule document or workflow result.
+/// </summary>
 public sealed record ReconciliationDiagnostic
 {
     [JsonPropertyName("severity")]
@@ -36,6 +42,9 @@ public sealed record ReconciliationDiagnostic
     public string Message { get; init; } = "";
 }
 
+/// <summary>
+/// Snapshot of the remote server state used during preview and deployment.
+/// </summary>
 public sealed record ServerScriptSnapshot
 {
     [JsonPropertyName("activeScriptName")]
@@ -51,6 +60,9 @@ public sealed record ServerScriptSnapshot
     public List<string> SieveCapabilities { get; init; } = [];
 }
 
+/// <summary>
+/// Serialized deployment metadata used to validate deploy and rollback operations.
+/// </summary>
 public sealed record DeploymentPlan
 {
     public const int CurrentSchemaVersion = 1;

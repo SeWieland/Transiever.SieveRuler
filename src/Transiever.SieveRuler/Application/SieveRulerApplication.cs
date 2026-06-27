@@ -3,6 +3,9 @@ using Transiever.SieveRuler.Services;
 
 namespace Transiever.SieveRuler.Application;
 
+/// <summary>
+/// Entry point for local rule inspection, optimization, and Sieve generation workflows.
+/// </summary>
 public sealed class SieveRulerApplication(
     IRuleSerializer serializer,
     IRuleOptimizer optimizer,

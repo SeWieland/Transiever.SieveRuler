@@ -3,6 +3,9 @@ using System.Text.Json;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// JSON serializer for Transiever rule documents.
+/// </summary>
 public sealed class JsonRuleSerializer : IRuleSerializer
 {
     internal static readonly JsonSerializerOptions Options = new()

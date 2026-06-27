@@ -1,5 +1,8 @@
 namespace Transiever.SieveRuler.Models;
 
+/// <summary>
+/// Supported rule condition categories.
+/// </summary>
 public enum RuleConditionType
 {
     SenderContains,

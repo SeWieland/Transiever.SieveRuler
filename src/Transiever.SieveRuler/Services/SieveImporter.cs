@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace Transiever.SieveRuler.Services;
 
+/// <summary>
+/// Parses and isolates managed sections in a Sieve script.
+/// </summary>
 public sealed class SieveImporter : ISieveImporter
 {
     public const string RequirementsBegin = "# BEGIN SIEVERULER REQUIREMENTS v1";
