@@ -56,8 +56,8 @@ Use `--history-limit <count>` to change the newest-history count, or `--no-prune
 If `HAVESPACE` fails before upload, deployment runs the same safe prune pass, refreshes state, and retries the quota check once.
 
 Rollback validates the plan and current active candidate before changing the server.
-Version 3 plans restore the server-side backup into the target script.
-Legacy v1 and v2 plans reactivate the recorded source script or disable active Sieve processing if the preview started with no active script.
+Plans with a server-side backup restore that backup into the target script.
+Plans without a backup reactivate the recorded source script or disable active Sieve processing if the preview started with no active script.
 
 `--force` bypasses only the current-active candidate mismatch check.
 Backup and content hash validation still apply.

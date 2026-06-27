@@ -18,7 +18,7 @@ Start here, then follow the component-specific guides:
 * [architecture](docs/architecture.md) for system boundaries and responsibility split.
 * [rules and metadata](docs/rules-and-metadata.md) for the rules contract, composition, and generated `## Flag:` compatibility rules.
 * [synchronization policy](docs/synchronization-policy.md) for preview, deployment, rollback, and retained-history behavior.
-* [rules schema](schemas/sieveruler.rules.schema.json) for the v2 JSON contract.
+* [rules schema](schemas/sieveruler.rules.schema.json) for the v1 JSON contract.
 
 ## Repository Layout
 
@@ -33,11 +33,11 @@ src/Transiever.SieveRuler.IntegrationTest/ Docker-backed ManageSieve test
 The Docker-backed integration test uses a pinned Dovecot/Pigeonhole container and pins the container certificate through the ManageSieve internal test seam.
 
 The public JSON contract is [`schemas/sieveruler.rules.schema.json`](schemas/sieveruler.rules.schema.json).
-Its schema ID is `urn:sieveruler:rules:v2`.
+Its schema ID is `urn:sieveruler:rules:v1`.
 
 ## Feature Summary
 
-* Provider-neutral rules schema and serializer with legacy migration support.
+* Provider-neutral v1 rules schema and serializer.
 * Strict Sieve import, source-aware reconciliation, and compatible-rule optimization.
 * ManageSieve preview and deployment workflows with active-script-preserving defaults.
 * Rollback and retained-history operations for SieveRuler-managed deployments.

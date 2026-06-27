@@ -412,48 +412,6 @@ public sealed class SieveImporterAndCompositionTests
         Assert.Contains(opaqueFlag, candidate);
     }
 
-    [Fact]
-    public void LegacyManagedRegion_IsReadAndRewrittenAsSieveRulerVersionTwo()
-    {
-        const string metadataJson =
-            """[{"name":"Legacy","targetFolder":"INBOX/Billing","conditionMode":"All","conditions":[{"type":"SubjectContains","values":["invoice"]}],"source":"Outlook","ownership":"OutlookResiever","requiredCapabilities":[]}]""";
-        const string body =
-            """
-            # Rule: Legacy
-            if header :contains "subject" "invoice" {
-                fileinto "INBOX/Billing";
-                stop;
-            }
-            """;
-        byte[] metadata = Encoding.UTF8.GetBytes(metadataJson);
-        string script =
-            $"{SieveImporter.LegacyRulesBegin}\r\n" +
-            $"{SieveImporter.MetadataPrefix}{Convert.ToBase64String(metadata)}\r\n" +
-            $"{SieveImporter.MetadataHashPrefix}{Convert.ToHexString(SHA256.HashData(metadata))}\r\n" +
-            $"{SieveImporter.BodyHashPrefix}{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(body)))}\r\n\r\n" +
-            body + "\r\n" +
-            $"{SieveImporter.LegacyRulesEnd}\r\n";
-        var importer = new SieveImporter();
-
-        SieveImportResult imported = importer.Import(Encoding.UTF8.GetBytes(script));
-        RuleDefinition legacy = Assert.Single(imported.ManagedSourceRules);
-        Assert.Equal("outlook", legacy.SourceId);
-        SieveCompositionResult composed = new SieveScriptComposer(
-            importer,
-            new SieveGenerator()).Compose(
-                imported,
-                new RuleReconciliationResult
-                {
-                    OwnedSourceRules = [legacy],
-                    RenderedRules = [legacy]
-                });
-        string migrated = Encoding.UTF8.GetString(composed.Content);
-
-        Assert.False(composed.IsBlocked);
-        Assert.Contains(SieveImporter.RulesBegin, migrated);
-        Assert.DoesNotContain(SieveImporter.LegacyRulesBegin, migrated);
-    }
-
     private static RuleDefinition CreateRule(
         string name,
         string source,

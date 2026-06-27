@@ -7,7 +7,7 @@ namespace Transiever.SieveRuler.UnitTest;
 public sealed class JsonRuleSerializerTests
 {
     [Fact]
-    public async Task Serializer_ReadsLegacyArrayAndWritesVersionedDocument()
+    public async Task Serializer_ReadsAndWritesVersionOneDocument()
     {
         string file = Path.Combine(
             Path.GetTempPath(),
@@ -17,19 +17,26 @@ public sealed class JsonRuleSerializerTests
             await File.WriteAllTextAsync(
                 file,
                 """
-                [
-                  {
-                    "name": "Legacy",
-                    "targetFolder": "INBOX/Legacy",
-                    "conditionMode": "All",
-                    "conditions": [
-                      {
-                        "type": "SubjectContains",
-                        "values": [ "legacy" ]
-                      }
-                    ]
-                  }
-                ]
+                {
+                  "$schema": "urn:sieveruler:rules:v1",
+                  "schemaVersion": 1,
+                  "sourceId": "outlook",
+                  "rules": [
+                    {
+                      "name": "Inbox",
+                      "targetFolder": "INBOX",
+                      "conditionMode": "All",
+                      "conditions": [
+                        {
+                          "type": "SubjectContains",
+                          "values": [ "invoice" ]
+                        }
+                      ],
+                      "ownership": "Managed",
+                      "requiredCapabilities": []
+                    }
+                  ]
+                }
                 """,
                 TestContext.Current.CancellationToken);
             var serializer = new JsonRuleSerializer();
@@ -45,9 +52,9 @@ public sealed class JsonRuleSerializerTests
                 file,
                 TestContext.Current.CancellationToken);
 
-            Assert.Equal("Legacy", Assert.Single(document.Rules).Name);
+            Assert.Equal("Inbox", Assert.Single(document.Rules).Name);
             Assert.Equal("outlook", document.SourceId);
-            Assert.Contains("\"schemaVersion\": 2", saved);
+            Assert.Contains("\"schemaVersion\": 1", saved);
             Assert.Contains("\"rules\":", saved);
         }
         finally
@@ -57,38 +64,21 @@ public sealed class JsonRuleSerializerTests
     }
 
     [Fact]
-    public async Task Serializer_MigratesVersionOneSourceAndOwnership()
+    public async Task Serializer_RejectsBareArray()
     {
         await using var stream = new MemoryStream(
-            """
-            {
-              "schemaVersion": 1,
-              "rules": [
-                {
-                  "name": "Legacy",
-                  "targetFolder": "INBOX/Legacy",
-                  "conditionMode": "All",
-                  "conditions": [],
-                  "source": "Server",
-                  "ownership": "OutlookResiever",
-                  "requiredCapabilities": []
-                }
-              ]
-            }
-            """u8.ToArray());
+            """[]"""u8.ToArray());
 
-        RuleDocument document = await new JsonRuleSerializer().LoadDocumentAsync(
-            stream,
-            TestContext.Current.CancellationToken);
+        InvalidDataException exception = await Assert.ThrowsAsync<InvalidDataException>(
+            () => new JsonRuleSerializer().LoadDocumentAsync(
+                stream,
+                TestContext.Current.CancellationToken));
 
-        RuleDefinition rule = Assert.Single(document.Rules);
-        Assert.Equal("outlook", document.SourceId);
-        Assert.Equal("server", rule.SourceId);
-        Assert.Equal(RuleOwnership.Managed, rule.Ownership);
+        Assert.Contains("object", exception.Message);
     }
 
     [Fact]
-    public async Task Serializer_RejectsInvalidVersionTwoDocument()
+    public async Task Serializer_RejectsUnsupportedVersion()
     {
         await using var stream = new MemoryStream(
             """{"schemaVersion":2,"rules":[]}"""u8.ToArray());
@@ -98,7 +88,7 @@ public sealed class JsonRuleSerializerTests
                 stream,
                 TestContext.Current.CancellationToken));
 
-        Assert.Contains("sourceId", exception.Message);
+        Assert.Contains("Unsupported rules schema version 2", exception.Message);
     }
 
     [Fact]

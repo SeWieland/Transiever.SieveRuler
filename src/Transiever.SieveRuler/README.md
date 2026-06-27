@@ -3,14 +3,14 @@
 The library exposes:
 
 * `RuleDocument` and `RuleDefinition` as the JSON API;
-* `JsonRuleSerializer` with file and stream APIs plus legacy migration;
+* `JsonRuleSerializer` with file and stream APIs;
 * rule optimization and Sieve generation;
 * strict Sieve import, byte-preserving composition, and source-aware
   reconciliation;
 * typed preview, deployment, rollback, and history workflows over
   `Transiever.ManageSieve`.
 
-The package includes the v2 JSON schema.
+The package includes the v1 JSON schema.
 All asynchronous I/O accepts `CancellationToken`.
 
 Expected preview, deployment, rollback, and history outcomes use typed statuses.
@@ -25,9 +25,9 @@ Rules contract and provider metadata details live in [../../docs/rules-and-metad
 In short:
 
 * preview writes separate reconciled ownership and rendered candidate rule documents;
-* new deployment plans are version 3 and preserve the current active script name by default;
+* deployment plans are version 1 and preserve the current active script name by default;
 * active-script replacement creates a server-side backup before mutation;
-* rollback restores that backup, while legacy v1/v2 plans reactivate the recorded source script;
+* rollback restores that backup, or reactivates the recorded source script when no backup was created;
 * generated managed rules include Open-Xchange-compatible `## Flag:` comments with stable IDs and rule names for provider UIs;
 * deployment can prune inactive SieveRuler-owned history, keeping the oldest backup plus the newest 5 remaining history scripts by default;
 * history restore creates a fresh backup before changing active filtering and can restore the original unmanaged or no-active state when a retained marker exists.

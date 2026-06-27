@@ -37,8 +37,6 @@ public sealed class CommandLineOptions
 
     public bool? AdoptCompatible { get; private init; }
 
-    public bool Activate { get; private init; }
-
     public bool Force { get; private init; }
 
     public bool DryRun { get; private init; }
@@ -75,7 +73,6 @@ public sealed class CommandLineOptions
             ? RuleOptimizationMode.Conservative
             : null;
         bool? adoptCompatible = null;
-        var activate = false;
         var force = false;
         var dryRun = false;
         var historyLimit = 5;
@@ -150,9 +147,6 @@ public sealed class CommandLineOptions
                 case "--preserve-compatible":
                     adoptCompatible = false;
                     break;
-                case "--activate":
-                    activate = true;
-                    break;
                 case "--force":
                     force = true;
                     break;
@@ -212,7 +206,6 @@ public sealed class CommandLineOptions
             HistoryScriptName = historyScriptName,
             OptimizationMode = optimizationMode,
             AdoptCompatible = adoptCompatible,
-            Activate = activate,
             Force = force,
             DryRun = dryRun,
             HistoryLimit = historyLimit,

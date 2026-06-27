@@ -150,7 +150,7 @@ public sealed class SieveSynchronizationWorkflowTests
     }
 
     [Fact]
-    public async Task Rollback_LegacyPlanReactivatesSourceScript()
+    public async Task Rollback_PlanWithoutBackupReactivatesSourceScript()
     {
         string directory = CreateDirectory();
 
@@ -163,12 +163,12 @@ public sealed class SieveSynchronizationWorkflowTests
                 directory,
                 new DeploymentPlan
                 {
-                    SchemaVersion = 2,
+                    SchemaVersion = DeploymentPlan.CurrentSchemaVersion,
                     SourceActiveScriptName = "source",
                     SourceContentSha256 = Hash(source),
                     CandidateContentBase64 = Convert.ToBase64String(candidate),
                     CandidateContentSha256 = Hash(candidate),
-                    SuggestedScriptName = "srtx-candidate"
+                    TargetScriptName = "srtx-candidate"
                 },
                 cancellationToken);
             var connection = FakeConnection.WithScripts(
@@ -207,12 +207,12 @@ public sealed class SieveSynchronizationWorkflowTests
                 directory,
                 new DeploymentPlan
                 {
-                    SchemaVersion = 2,
+                    SchemaVersion = DeploymentPlan.CurrentSchemaVersion,
                     SourceActiveScriptName = "source",
                     SourceContentSha256 = Hash(source),
                     CandidateContentBase64 = Convert.ToBase64String(candidate),
                     CandidateContentSha256 = Hash(candidate),
-                    SuggestedScriptName = "srtx-candidate"
+                    TargetScriptName = "srtx-candidate"
                 },
                 cancellationToken);
             var connection = FakeConnection.WithScripts(
@@ -246,12 +246,12 @@ public sealed class SieveSynchronizationWorkflowTests
                 directory,
                 new DeploymentPlan
                 {
-                    SchemaVersion = 2,
+                    SchemaVersion = DeploymentPlan.CurrentSchemaVersion,
                     SourceActiveScriptName = "source",
                     SourceContentSha256 = Hash(source),
                     CandidateContentBase64 = Convert.ToBase64String(candidate),
                     CandidateContentSha256 = Hash(candidate),
-                    SuggestedScriptName = "srtx-candidate"
+                    TargetScriptName = "srtx-candidate"
                 },
                 cancellationToken);
             var connection = FakeConnection.WithScripts(

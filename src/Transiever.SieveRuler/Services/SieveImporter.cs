@@ -7,16 +7,10 @@ namespace Transiever.SieveRuler.Services;
 
 public sealed class SieveImporter : ISieveImporter
 {
-    public const string RequirementsBegin = "# BEGIN SIEVERULER REQUIREMENTS v2";
-    public const string RequirementsEnd = "# END SIEVERULER REQUIREMENTS v2";
-    public const string RulesBegin = "# BEGIN SIEVERULER RULES v2";
-    public const string RulesEnd = "# END SIEVERULER RULES v2";
-    public const string LegacyRequirementsBegin =
-        "# BEGIN OUTLOOKRESIEVER REQUIREMENTS v1";
-    public const string LegacyRequirementsEnd =
-        "# END OUTLOOKRESIEVER REQUIREMENTS v1";
-    public const string LegacyRulesBegin = "# BEGIN OUTLOOKRESIEVER RULES v1";
-    public const string LegacyRulesEnd = "# END OUTLOOKRESIEVER RULES v1";
+    public const string RequirementsBegin = "# BEGIN SIEVERULER REQUIREMENTS v1";
+    public const string RequirementsEnd = "# END SIEVERULER REQUIREMENTS v1";
+    public const string RulesBegin = "# BEGIN SIEVERULER RULES v1";
+    public const string RulesEnd = "# END SIEVERULER RULES v1";
     public const string MetadataPrefix = "# Metadata: ";
     public const string MetadataHashPrefix = "# Metadata-SHA256: ";
     public const string BodyHashPrefix = "# Body-SHA256: ";
@@ -65,40 +59,34 @@ public sealed class SieveImporter : ISieveImporter
         var managedSpans = new List<SieveSourceSpan>();
         bool conflict = false;
 
-        ManagedRegionMatch requirements = FindManagedRegion(
+        Region? requirements = FindRegion(
             text,
             RequirementsBegin,
-            RequirementsEnd,
-            LegacyRequirementsBegin,
-            LegacyRequirementsEnd);
-        ManagedRegionMatch rules = FindManagedRegion(
+            RequirementsEnd);
+        Region? rules = FindRegion(
             text,
             RulesBegin,
-            RulesEnd,
-            LegacyRulesBegin,
-            LegacyRulesEnd);
-        conflict |= requirements.Conflict || rules.Conflict;
-        if (requirements.Region is not null)
+            RulesEnd);
+        if (requirements is not null)
         {
             managedSpans.Add(
                 new SieveSourceSpan(
-                    requirements.Region.Start,
-                    requirements.Region.Length));
-            conflict |= !requirements.Region.IsValid ||
-                !ValidateRequirementsRegion(text, requirements.Region);
+                    requirements.Start,
+                    requirements.Length));
+            conflict |= !requirements.IsValid ||
+                !ValidateRequirementsRegion(text, requirements);
         }
 
         IReadOnlyList<RuleDefinition> managedRules = [];
-        if (rules.Region is not null)
+        if (rules is not null)
         {
             managedSpans.Add(
-                new SieveSourceSpan(rules.Region.Start, rules.Region.Length));
+                new SieveSourceSpan(rules.Start, rules.Length));
             ManagedMetadataResult metadata = ParseManagedMetadata(
                 text,
-                rules.Region,
-                rules.IsLegacy);
+                rules);
             managedRules = metadata.Rules;
-            conflict |= metadata.Conflict || !rules.Region.IsValid;
+            conflict |= metadata.Conflict || !rules.IsValid;
             diagnostics.AddRange(metadata.Diagnostics);
         }
 
@@ -108,7 +96,7 @@ public sealed class SieveImporter : ISieveImporter
                 Diagnostic(
                     "Error",
                     "ManagedRegionModified",
-                    "A Transiever.SieveRuler managed region is duplicated, mixed with a legacy region, or not terminated."));
+                    "A Transiever.SieveRuler managed region is duplicated or not terminated."));
         }
 
         string externalText = BlankSpans(text, managedSpans);
@@ -132,8 +120,7 @@ public sealed class SieveImporter : ISieveImporter
 
     private static ManagedMetadataResult ParseManagedMetadata(
         string text,
-        Region region,
-        bool legacy)
+        Region region)
     {
         string regionText = text.Substring(region.ContentStart, region.ContentLength);
         string? metadataText = ReadPrefixedLines(regionText, MetadataPrefix);
@@ -165,19 +152,9 @@ public sealed class SieveImporter : ISieveImporter
                 byte[] metadataBytes = Convert.FromBase64String(metadataText!);
                 string actualMetadataHash = Convert.ToHexString(
                     SHA256.HashData(metadataBytes));
-                if (legacy)
-                {
-                    using JsonDocument metadataDocument =
-                        JsonDocument.Parse(metadataBytes);
-                    rules = JsonRuleSerializer.ReadLegacyRules(
-                        metadataDocument.RootElement);
-                }
-                else
-                {
-                    rules = JsonSerializer.Deserialize<List<RuleDefinition>>(
-                        metadataBytes,
-                        MetadataOptions) ?? [];
-                }
+                rules = JsonSerializer.Deserialize<List<RuleDefinition>>(
+                    metadataBytes,
+                    MetadataOptions) ?? [];
                 string actualHash = Convert.ToHexString(
                     SHA256.HashData(Encoding.UTF8.GetBytes(body)));
                 conflict =
@@ -264,34 +241,6 @@ public sealed class SieveImporter : ISieveImporter
             true);
     }
 
-    private static ManagedRegionMatch FindManagedRegion(
-        string text,
-        string beginMarker,
-        string endMarker,
-        string legacyBeginMarker,
-        string legacyEndMarker)
-    {
-        Region? current = FindRegion(text, beginMarker, endMarker);
-        Region? legacy = FindRegion(text, legacyBeginMarker, legacyEndMarker);
-        if (current is not null && legacy is not null)
-        {
-            int start = Math.Min(current.Start, legacy.Start);
-            return new ManagedRegionMatch(
-                new Region(
-                    start,
-                    text.Length - start,
-                    start,
-                    text.Length - start,
-                    false),
-                IsLegacy: false,
-                Conflict: true);
-        }
-
-        return current is not null
-            ? new ManagedRegionMatch(current, IsLegacy: false, Conflict: false)
-            : new ManagedRegionMatch(legacy, IsLegacy: true, Conflict: false);
-    }
-
     private static IReadOnlyList<int> FindLineMarkers(string text, string marker)
     {
         var result = new List<int>();
@@ -367,11 +316,6 @@ public sealed class SieveImporter : ISieveImporter
         int ContentStart,
         int ContentLength,
         bool IsValid);
-
-    private sealed record ManagedRegionMatch(
-        Region? Region,
-        bool IsLegacy,
-        bool Conflict);
 
     private sealed record ManagedMetadataResult(
         IReadOnlyList<RuleDefinition> Rules,

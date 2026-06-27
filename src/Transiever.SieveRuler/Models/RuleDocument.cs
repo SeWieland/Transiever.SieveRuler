@@ -4,9 +4,9 @@ namespace Transiever.SieveRuler.Models;
 
 public sealed record RuleDocument
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 1;
 
-    public const string SchemaId = "urn:sieveruler:rules:v2";
+    public const string SchemaId = "urn:sieveruler:rules:v1";
 
     [JsonPropertyName("$schema")]
     public string Schema { get; init; } = SchemaId;
@@ -53,7 +53,7 @@ public sealed record ServerScriptSnapshot
 
 public sealed record DeploymentPlan
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 1;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -64,8 +64,6 @@ public sealed record DeploymentPlan
     public string CandidateContentBase64 { get; init; } = "";
 
     public string CandidateContentSha256 { get; init; } = "";
-
-    public string? SuggestedScriptName { get; init; }
 
     public string? TargetScriptName { get; init; }
 

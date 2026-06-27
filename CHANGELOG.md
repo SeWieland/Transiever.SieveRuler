@@ -9,7 +9,7 @@ Initial development version:
 * Sieve generation, strict compatible import, and opaque preservation;
 * Open-Xchange-compatible provider UI metadata comments on generated managed
   Sieve rules;
-* source-aware reconciliation and managed-region migration;
+* source-aware reconciliation and managed-region composition;
 * preview-first ManageSieve deployment through `Transiever.ManageSieve`, with
   active script name preservation, server-side backups, bounded inactive
   history pruning, and rollback;

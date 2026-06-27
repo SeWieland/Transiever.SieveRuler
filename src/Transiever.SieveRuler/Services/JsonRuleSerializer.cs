@@ -79,41 +79,17 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             source,
             cancellationToken: cancellationToken);
 
-        if (json.RootElement.ValueKind == JsonValueKind.Array)
-        {
-            return new RuleDocument
-            {
-                SourceId = "outlook",
-                Rules = ReadLegacyRules(json.RootElement)
-            };
-        }
-
         if (json.RootElement.ValueKind != JsonValueKind.Object)
         {
             throw new InvalidDataException(
-                "Rules JSON must be an object or a legacy rule array.");
+                "Rules JSON must be an object.");
         }
 
         int version = json.RootElement.TryGetProperty(
             "schemaVersion",
             out JsonElement versionElement)
             ? versionElement.GetInt32()
-            : 1;
-        if (version == 1)
-        {
-            JsonElement rules = json.RootElement.TryGetProperty(
-                "rules",
-                out JsonElement legacyRules)
-                ? legacyRules
-                : default;
-            return new RuleDocument
-            {
-                SourceId = "outlook",
-                Rules = rules.ValueKind == JsonValueKind.Array
-                    ? ReadLegacyRules(rules)
-                    : []
-            };
-        }
+            : throw new InvalidDataException("Rules JSON requires a schemaVersion.");
 
         if (version != RuleDocument.CurrentSchemaVersion)
         {
@@ -128,7 +104,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             string.IsNullOrWhiteSpace(sourceIdElement.GetString()))
         {
             throw new InvalidDataException(
-                "Transiever.SieveRuler schema v2 requires a non-empty sourceId.");
+                "Transiever.SieveRuler schema v1 requires a non-empty sourceId.");
         }
 
         if (!json.RootElement.TryGetProperty(
@@ -137,7 +113,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             rulesElement.ValueKind != JsonValueKind.Array)
         {
             throw new InvalidDataException(
-                "Transiever.SieveRuler schema v2 requires a rules array.");
+                "Transiever.SieveRuler schema v1 requires a rules array.");
         }
 
         if (json.RootElement.TryGetProperty(
@@ -157,84 +133,6 @@ public sealed class JsonRuleSerializer : IRuleSerializer
         ValidateSourceId(document.SourceId);
         return document;
     }
-
-    internal static List<RuleDefinition> ReadLegacyRules(JsonElement rules)
-    {
-        var result = new List<RuleDefinition>();
-        foreach (JsonElement rule in rules.EnumerateArray())
-        {
-            string source = rule.TryGetProperty("source", out JsonElement sourceElement)
-                ? MapLegacySource(sourceElement.GetString())
-                : "outlook";
-            string ownership = rule.TryGetProperty(
-                "ownership",
-                out JsonElement ownershipElement)
-                ? ownershipElement.GetString() ?? ""
-                : "Transiever.OutlookResiever";
-            result.Add(
-                new RuleDefinition
-                {
-                    Id = ReadOptionalString(rule, "id"),
-                    Name = ReadOptionalString(rule, "name") ?? "",
-                    TargetFolder = ReadOptionalString(rule, "targetFolder") ?? "",
-                    ConditionMode = ReadEnum(
-                        rule,
-                        "conditionMode",
-                        RuleConditionMode.All),
-                    Conditions = rule.TryGetProperty(
-                        "conditions",
-                        out JsonElement conditions)
-                        ? conditions.Deserialize<List<RuleCondition>>(Options) ?? []
-                        : [],
-                    SourceId = source,
-                    Ownership = ownership.Equals(
-                        "External",
-                        StringComparison.OrdinalIgnoreCase)
-                        ? RuleOwnership.External
-                        : RuleOwnership.Managed,
-                    OriginalOrder = rule.TryGetProperty(
-                        "originalOrder",
-                        out JsonElement order)
-                        ? order.GetInt32()
-                        : null,
-                    RequiredCapabilities = rule.TryGetProperty(
-                        "requiredCapabilities",
-                        out JsonElement capabilities)
-                        ? capabilities.Deserialize<List<string>>(Options) ?? []
-                        : []
-                });
-        }
-
-        return result;
-    }
-
-    private static TEnum ReadEnum<TEnum>(
-        JsonElement parent,
-        string propertyName,
-        TEnum defaultValue)
-        where TEnum : struct, Enum =>
-        parent.TryGetProperty(propertyName, out JsonElement value) &&
-        Enum.TryParse(value.GetString(), ignoreCase: true, out TEnum parsed)
-            ? parsed
-            : defaultValue;
-
-    private static string? ReadOptionalString(
-        JsonElement parent,
-        string propertyName) =>
-        parent.TryGetProperty(propertyName, out JsonElement value) &&
-        value.ValueKind != JsonValueKind.Null
-            ? value.GetString()
-            : null;
-
-    private static string MapLegacySource(string? source) =>
-        source?.ToLowerInvariant() switch
-        {
-            "outlook" => "outlook",
-            "server" => "server",
-            "generated" => "generated",
-            { Length: > 0 } other => other,
-            _ => "outlook"
-        };
 
     private static string ValidateSourceId(string sourceId)
     {

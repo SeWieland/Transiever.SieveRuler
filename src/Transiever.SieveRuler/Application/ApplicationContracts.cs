@@ -35,7 +35,6 @@ public sealed record PreviewSynchronizationRequest(
 public sealed record DeploySynchronizationRequest(
     SieveServerConfiguration? Configuration,
     string PlanFile,
-    bool Activate = false,
     bool DryRun = false,
     int HistoryLimit = 5,
     bool PruneHistory = true);
@@ -98,8 +97,6 @@ public sealed record PreviewSynchronizationResult
     public IReadOnlyCollection<string> MissingCapabilities { get; init; } = [];
 
     public int ManagedRuleCount { get; init; }
-
-    public string? SuggestedScriptName { get; init; }
 
     public string? TargetScriptName { get; init; }
 

@@ -31,14 +31,11 @@ Neither may assume Windows.
 
 ## Contracts
 
-Rules schema v2 uses `$schema: urn:sieveruler:rules:v2`, `schemaVersion: 2`, and a non-empty document `sourceId`.
+Rules schema v1 uses `$schema: urn:sieveruler:rules:v1`, `schemaVersion: 1`, and a non-empty document `sourceId`.
 A rule can override `sourceId`; otherwise it belongs to the document source.
 
-Continue reading legacy bare arrays, `Transiever.OutlookResiever` schema v1, deployment-plan v1/v2,
-and valid `Transiever.OutlookResiever` v1 managed Sieve regions.
-New rules output uses `Transiever.SieveRuler` schema version 2.
-New deployment plans use version 3.
-Managed Sieve rule markers remain version 2.
+Do not carry pre-public migration paths for old development artifacts.
+New rules output, deployment plans, and managed Sieve markers all use version 1.
 
 Reconciliation removes obsolete managed rules only for the authoritative source being updated.
 It must preserve other sources and opaque Sieve content.

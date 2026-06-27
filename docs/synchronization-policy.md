@@ -16,7 +16,7 @@ The source document is never replaced during preview.
 Combined state is written to `reconciled-rules.json`.
 The managed rules actually rendered into the candidate script are written to `candidate-rules.json`.
 
-New deployment plans are version 3.
+Deployment plans are version 1.
 Preview preserves the provider's current active script name as the default target,
 and it records a server-side backup name when deployment will replace that active script.
 `--script-name` can override the target.
@@ -48,14 +48,14 @@ which allows the unmanaged state to be restored later without guessing.
 
 ## Rollback
 
-Rollback reads v1, v2, and v3 plans.
+Rollback reads v1 plans.
 It refuses to proceed unless the current active script matches the deployed candidate, except when forced.
 
-V3 backup rollback fetches and verifies the server-side backup,
+Backup rollback fetches and verifies the server-side backup,
 then restores that backup into the target script and leaves the backup script in place.
 
-Legacy v1 and v2 rollback reactivates the recorded source active script.
-If the preview started with no active script, legacy rollback disables active filtering instead.
+Plans without a server-side backup reactivate the recorded source active script.
+If the preview started with no active script, rollback disables active filtering instead.
 
 ## History
 

@@ -130,7 +130,6 @@ public sealed class SieveRulerCliApplication(
                         ? null
                         : configurationProvider.GetConfiguration(),
                     options.PlanFile,
-                    options.Activate,
                     options.DryRun,
                     options.HistoryLimit,
                     options.PruneHistory),

@@ -144,7 +144,6 @@ public sealed class SieveSynchronizationWorkflow(
             {
                 Status = PreviewSynchronizationStatus.InsufficientSpace,
                 Diagnostics = composition.Diagnostics,
-                SuggestedScriptName = targetName,
                 TargetScriptName = targetName,
                 ReplacesActiveScript = replacesActive
             };
@@ -175,7 +174,6 @@ public sealed class SieveSynchronizationWorkflow(
             SourceContentSha256 = remote.ActiveContentSha256,
             CandidateContentBase64 = Convert.ToBase64String(composition.Content),
             CandidateContentSha256 = candidateHash,
-            SuggestedScriptName = targetName,
             TargetScriptName = targetName,
             BackupScriptName = backupName,
             BackupContentSha256 = backupName is null
@@ -212,7 +210,6 @@ public sealed class SieveSynchronizationWorkflow(
             Status = PreviewSynchronizationStatus.Prepared,
             Diagnostics = composition.Diagnostics,
             ManagedRuleCount = reconciliation.RenderedRules.Count,
-            SuggestedScriptName = targetName,
             TargetScriptName = targetName,
             ReplacesActiveScript = replacesActive,
             FilesWritten = !request.DryRun
@@ -1267,7 +1264,7 @@ public sealed class SieveSynchronizationWorkflow(
         DeploymentPlan plan = JsonSerializer.Deserialize<DeploymentPlan>(
             await File.ReadAllTextAsync(planFile, cancellationToken),
             PlanOptions) ?? throw new InvalidDataException("Deployment plan was empty.");
-        if (plan.SchemaVersion is not (1 or 2 or DeploymentPlan.CurrentSchemaVersion))
+        if (plan.SchemaVersion != DeploymentPlan.CurrentSchemaVersion)
         {
             throw new InvalidDataException(
                 $"Unsupported deployment plan version {plan.SchemaVersion}.");
@@ -1309,8 +1306,7 @@ public sealed class SieveSynchronizationWorkflow(
 
     private static string GetTargetScriptName(DeploymentPlan plan)
     {
-        string? target = NullIfEmpty(plan.TargetScriptName) ??
-            NullIfEmpty(plan.SuggestedScriptName);
+        string? target = NullIfEmpty(plan.TargetScriptName);
         if (target is null)
         {
             throw new InvalidDataException(
