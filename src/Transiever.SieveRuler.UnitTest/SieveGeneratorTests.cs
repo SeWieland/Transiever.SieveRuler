@@ -67,11 +67,32 @@ public sealed class SieveGeneratorTests
         Assert.DoesNotContain("Invoices|Production", flagLine);
         Assert.Contains(
             flagLine + "\r\n" +
-            "if header :contains \"subject\" \"Invoice\"\r\n" +
+            "if header :contains \"Subject\" \"Invoice\"\r\n" +
             "{\r\n" +
             "fileinto \"INBOX/Finance\" ;\r\n" +
             "}",
             first);
+    }
+
+    [Fact]
+    public void Generate_UsesProviderCompatibleSubjectHeaderCaseInBodyCombination()
+    {
+        RuleDefinition rule = new()
+        {
+            TargetFolder = "INBOX/Content",
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SubjectOrBodyContains,
+                    Values = ["keyword"]
+                }
+            ]
+        };
+
+        string script = new SieveGenerator().Generate([rule]);
+
+        Assert.Contains("header :contains \"Subject\" \"keyword\"", script);
     }
 
     [Fact]

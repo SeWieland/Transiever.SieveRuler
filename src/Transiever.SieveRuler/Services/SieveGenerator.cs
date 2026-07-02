@@ -128,14 +128,14 @@ public sealed class SieveGenerator : ISieveGenerator
                 $"address :contains [\"to\", \"cc\"] {RenderStringOrList(values)}"),
 
             RuleConditionType.SubjectContains => new SieveCondition(
-                $"header :contains \"subject\" {RenderStringOrList(values)}"),
+                $"header :contains \"Subject\" {RenderStringOrList(values)}"),
 
             RuleConditionType.BodyContains => new SieveCondition(
                 $"body :contains {RenderStringOrList(values)}",
                 ["body"]),
 
             RuleConditionType.SubjectOrBodyContains => new SieveCondition(
-                $"anyof ( header :contains \"subject\" {RenderStringOrList(values)} , body :contains {RenderStringOrList(values)} )",
+                $"anyof ( header :contains \"Subject\" {RenderStringOrList(values)} , body :contains {RenderStringOrList(values)} )",
                 ["body"]),
 
             _ => null

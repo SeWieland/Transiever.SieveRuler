@@ -130,7 +130,7 @@ public sealed class SieveImporterAndCompositionTests
         Assert.False(result.IsBlocked);
         Assert.Contains("# User-owned opaque rule", candidate);
         Assert.Contains("header :matches", candidate);
-        Assert.Equal(1, Count(candidate, "header :contains \"subject\" \"invoice\""));
+        Assert.Equal(1, Count(candidate, "header :contains \"Subject\" \"invoice\""));
         Assert.Contains(SieveImporter.RulesBegin, candidate);
         Assert.DoesNotContain(SieveImporter.RequirementsBegin, candidate);
         Assert.Equal(1, Count(candidate, "require "));

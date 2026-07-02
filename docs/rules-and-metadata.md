@@ -41,5 +41,6 @@ Compatibility constraints:
 * Do not move fields before `Rulename:`.
 * Suffix fields become part of the visible name.
 * Reordered fields can make the OX/mailbox.org UI show `undefined`.
+* Render subject header tests as `Subject`, not `subject`.
 
 This is the only provider UI metadata compatibility currently validated end to end.
