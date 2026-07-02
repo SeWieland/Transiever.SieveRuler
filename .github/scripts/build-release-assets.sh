@@ -8,6 +8,10 @@ publish_root="$artifacts/publish"
 
 mkdir -p "$artifacts" "$publish_root"
 
+dotnet pack "$project" --configuration Release \
+  -p:PackageVersion="$version" \
+  --output out
+
 for rid in win-x64 win-x86; do
   output="$publish_root/$rid"
   dotnet publish "$project" --configuration Release --runtime "$rid" --self-contained true \

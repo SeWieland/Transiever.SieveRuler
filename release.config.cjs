@@ -29,21 +29,6 @@ module.exports = {
       }
     ],
     [
-      "@droidsolutions-oss/semantic-release-nuget",
-      {
-        projectPath: "src/Transiever.SieveRuler.Cli/Transiever.SieveRuler.Cli.csproj",
-        usePackageVersion: true,
-        nugetRegistries: [
-          {
-            name: "nuget",
-            type: "nuget",
-            url: "https://api.nuget.org/v3/index.json",
-            tokenEnvVar: "NUGET_API_KEY"
-          }
-        ]
-      }
-    ],
-    [
       "@semantic-release/exec",
       {
         prepareCmd: "bash .github/scripts/build-release-assets.sh ${nextRelease.version}"

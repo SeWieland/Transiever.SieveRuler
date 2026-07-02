@@ -5,5 +5,10 @@
 *.slnx text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.cjs text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
 *.sieve text eol=lf
 *.editorconfig text eol=lf
+.gitattributes text eol=lf
