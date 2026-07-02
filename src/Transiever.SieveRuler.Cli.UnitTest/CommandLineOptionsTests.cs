@@ -1,4 +1,5 @@
 using Transiever.SieveRuler.Models;
+using Transiever.SieveRuler.Services;
 using CommandLineOptions = global::Transiever.SieveRuler.Cli.CommandLineOptions;
 using SieveRulerHistoryAction = global::Transiever.SieveRuler.Cli.SieveRulerHistoryAction;
 using SieveRulerCommand = global::Transiever.SieveRuler.Cli.SieveRulerCommand;
@@ -63,6 +64,35 @@ public sealed class CommandLineOptionsTests
         Assert.Equal(SieveRulerCommand.Deploy, options.Command);
         Assert.Equal(3, options.HistoryLimit);
         Assert.False(options.PruneHistory);
+    }
+
+    [Fact]
+    public void Parse_ReadsSieveConnectionOptions()
+    {
+        CommandLineOptions options = CommandLineOptions.Parse(
+            [
+                "preview",
+                "--sieve-host", "sieve.test",
+                "--sieve-port", "4191",
+                "--sieve-username", "user",
+                "--sieve-password", "password",
+                "--sieve-security-mode", "ImplicitTls"
+            ]);
+
+        Assert.Equal("sieve.test", options.SieveHost);
+        Assert.Equal(4191, options.SievePort);
+        Assert.Equal("user", options.SieveUserName);
+        Assert.Equal("password", options.SievePassword);
+        Assert.Equal(SieveConnectionSecurity.ImplicitTls, options.SieveSecurity);
+    }
+
+    [Fact]
+    public void Parse_RejectsInvalidSievePort()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => CommandLineOptions.Parse(["preview", "--sieve-port", "70000"]));
+
+        Assert.Contains("--sieve-port", exception.Message);
     }
 
     [Fact]

@@ -116,6 +116,89 @@ public sealed class SieveGeneratorTests
         Assert.Contains("require [\"body\", \"fileinto\"];", script);
     }
 
+    [Fact]
+    public void Generate_RendersActionsExceptionsAndCapabilities()
+    {
+        RuleDefinition rule = new()
+        {
+            Name = "Forward invoice copies",
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SenderContains,
+                    Values = ["billing@example.com"]
+                }
+            ],
+            Exceptions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SubjectContains,
+                    Values = ["internal"]
+                }
+            ],
+            Actions =
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.SetFlags,
+                    Values = ["\\Seen"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.CopyInto,
+                    Values = ["INBOX/Copies"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.Redirect,
+                    Values = ["archive@example.com"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.Stop
+                }
+            ]
+        };
+
+        string script = new SieveGenerator().Generate([rule]);
+
+        Assert.Contains(
+            "require [\"copy\", \"fileinto\", \"imap4flags\"];",
+            script);
+        Assert.Contains(
+            "if allof ( address :contains \"from\" \"billing@example.com\" , not header :contains \"Subject\" \"internal\" )",
+            script);
+        Assert.Contains("addflag \"\\\\Seen\" ;", script);
+        Assert.Contains("fileinto :copy \"INBOX/Copies\" ;", script);
+        Assert.Contains("redirect \"archive@example.com\" ;", script);
+        Assert.Contains("stop ;", script);
+    }
+
+    [Fact]
+    public void Generate_RendersAttachmentConditionWithMimeCapability()
+    {
+        RuleDefinition rule = new()
+        {
+            TargetFolder = "INBOX/Attachments",
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.HasAttachment
+                }
+            ]
+        };
+
+        string script = new SieveGenerator().Generate([rule]);
+
+        Assert.Contains("require [\"fileinto\", \"mime\"];", script);
+        Assert.Contains(
+            "header :mime :anychild :contains \"Content-Disposition\" \"attachment\"",
+            script);
+    }
+
     private static string ReadField(string flagLine, string fieldName) =>
         flagLine
             .Split('|', StringSplitOptions.RemoveEmptyEntries)

@@ -89,7 +89,7 @@ public sealed class SieveRulerCliApplication(
         PreviewSynchronizationResult result =
             await synchronizationWorkflow.PreviewAsync(
                 new PreviewSynchronizationRequest(
-                    configurationProvider.GetConfiguration(),
+                    configurationProvider.GetConfiguration(options),
                     options.RulesFile,
                     options.ReconciledRulesFile,
                     options.CandidateRulesFile,
@@ -128,7 +128,7 @@ public sealed class SieveRulerCliApplication(
                 new DeploySynchronizationRequest(
                     options.DryRun
                         ? null
-                        : configurationProvider.GetConfiguration(),
+                        : configurationProvider.GetConfiguration(options),
                     options.PlanFile,
                     options.DryRun,
                     options.HistoryLimit,
@@ -181,7 +181,7 @@ public sealed class SieveRulerCliApplication(
                 new RollbackSynchronizationRequest(
                     options.DryRun
                         ? null
-                        : configurationProvider.GetConfiguration(),
+                        : configurationProvider.GetConfiguration(options),
                     options.PlanFile,
                     options.Force,
                     options.DryRun),
@@ -233,7 +233,7 @@ public sealed class SieveRulerCliApplication(
         CancellationToken cancellationToken)
     {
         HistoryListResult result = await synchronizationWorkflow.ListHistoryAsync(
-            new HistoryListRequest(configurationProvider.GetConfiguration()),
+            new HistoryListRequest(configurationProvider.GetConfiguration(options)),
             cancellationToken);
         Console.WriteLine(
             result.ActiveScriptName.Length == 0
@@ -260,7 +260,7 @@ public sealed class SieveRulerCliApplication(
             throw new InvalidOperationException("History script name is required.");
         HistoryShowResult result = await synchronizationWorkflow.ShowHistoryAsync(
             new HistoryShowRequest(
-                configurationProvider.GetConfiguration(),
+                configurationProvider.GetConfiguration(options),
                 scriptName),
             cancellationToken);
         if (options.SieveFileSpecified)
@@ -289,9 +289,7 @@ public sealed class SieveRulerCliApplication(
         HistoryRestoreResult result =
             await synchronizationWorkflow.RestoreHistoryAsync(
                 new HistoryRestoreRequest(
-                    options.DryRun
-                        ? configurationProvider.GetConfiguration()
-                        : configurationProvider.GetConfiguration(),
+                    configurationProvider.GetConfiguration(options),
                     scriptName,
                     options.Force,
                     options.DryRun),
@@ -330,7 +328,7 @@ public sealed class SieveRulerCliApplication(
         HistoryDeleteResult result =
             await synchronizationWorkflow.DeleteHistoryAsync(
                 new HistoryDeleteRequest(
-                    configurationProvider.GetConfiguration(),
+                    configurationProvider.GetConfiguration(options),
                     scriptName,
                     options.DryRun),
                 cancellationToken);
@@ -358,7 +356,7 @@ public sealed class SieveRulerCliApplication(
         HistoryPruneResult result =
             await synchronizationWorkflow.PruneHistoryAsync(
                 new HistoryPruneRequest(
-                    configurationProvider.GetConfiguration(),
+                    configurationProvider.GetConfiguration(options),
                     options.DryRun),
                 cancellationToken);
 

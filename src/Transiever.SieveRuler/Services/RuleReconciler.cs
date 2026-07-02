@@ -164,18 +164,32 @@ public sealed class RuleReconciler(IRuleOptimizer optimizer) : IRuleReconciler
             Id = rule.Id ?? RuleFingerprint.Create(rule),
             Name = rule.Name,
             TargetFolder = rule.TargetFolder,
+            Actions = rule.Actions.Select(CloneAction).ToList(),
             ConditionMode = rule.ConditionMode,
             Conditions = rule.Conditions
-                .Select(condition => new RuleCondition
-                {
-                    Type = condition.Type,
-                    Values = [.. condition.GetValues()]
-                })
+                .Select(CloneCondition)
+                .ToList(),
+            Exceptions = rule.Exceptions
+                .Select(CloneCondition)
                 .ToList(),
             SourceId = sourceId,
             Ownership = ownership,
             OriginalOrder = rule.OriginalOrder,
             RequiredCapabilities = [.. rule.RequiredCapabilities]
+        };
+
+    private static RuleAction CloneAction(RuleAction action) =>
+        new()
+        {
+            Type = action.Type,
+            Values = [.. action.GetValues()]
+        };
+
+    private static RuleCondition CloneCondition(RuleCondition condition) =>
+        new()
+        {
+            Type = condition.Type,
+            Values = [.. condition.GetValues()]
         };
 
     private static ReconciliationDiagnostic Diagnostic(

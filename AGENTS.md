@@ -38,6 +38,8 @@ Neither may assume Windows.
 
 Rules schema v1 uses `$schema: urn:sieveruler:rules:v1`, `schemaVersion: 1`, and a non-empty document `sourceId`.
 A rule can override `sourceId`; otherwise it belongs to the document source.
+Schema v1 includes explicit `actions` and `exceptions`.
+Keep `targetFolder` as the simple `FileInto` shortcut while existing tools still benefit from it.
 
 Do not carry pre-public migration paths for old development artifacts.
 New rules output, deployment plans, and managed Sieve markers all use version 1.
@@ -50,6 +52,9 @@ Compatible imports prefer `Rulename:` from those flags.
 Opaque provider flag comments outside adopted spans must stay byte-preserved.
 The exact metadata shape is documented in `docs/rules-and-metadata.md`.
 
+Capability preview must combine ManageSieve-advertised extensions with capabilities imported from the active script's leading `require` block.
+`CHECKSCRIPT` remains the final server-side validation before deployment.
+
 ## Safety
 
 Preview and dry-run never mutate a server.
@@ -57,6 +62,8 @@ Preview, deployment, rollback, and history behavior are intentionally documented
 Operator-facing details live in `src/Transiever.SieveRuler.Cli/README.md`.
 Keep those files authoritative when policy changes.
 Plaintext credentials are prohibited.
+Use `TRANSIEVER_SIEVE_*` for shared ManageSieve server configuration.
+Accept `--sieve-*` CLI options as command-level overrides.
 
 ## Commands
 

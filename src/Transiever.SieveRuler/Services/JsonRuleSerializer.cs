@@ -17,6 +17,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
         {
             new StringEnumJsonConverter<RuleConditionMode>(),
             new StringEnumJsonConverter<RuleConditionType>(),
+            new StringEnumJsonConverter<RuleActionType>(),
             new StringEnumJsonConverter<RuleOwnership>()
         }
     };

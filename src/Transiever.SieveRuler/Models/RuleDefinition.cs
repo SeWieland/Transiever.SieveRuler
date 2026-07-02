@@ -16,13 +16,19 @@ public sealed class RuleDefinition
     public string Name { get; init; } = "";
 
     [JsonPropertyName("targetFolder")]
-    public string TargetFolder { get; init; } = "";
+    public string TargetFolder { get; set; } = "";
+
+    [JsonPropertyName("actions")]
+    public List<RuleAction> Actions { get; init; } = [];
 
     [JsonPropertyName("conditionMode")]
     public RuleConditionMode ConditionMode { get; init; } = RuleConditionMode.All;
 
     [JsonPropertyName("conditions")]
     public List<RuleCondition> Conditions { get; init; } = [];
+
+    [JsonPropertyName("exceptions")]
+    public List<RuleCondition> Exceptions { get; init; } = [];
 
     [JsonPropertyName("sourceId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

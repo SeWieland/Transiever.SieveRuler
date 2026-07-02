@@ -29,6 +29,12 @@ During development, replace `srtx` with:
 dotnet run --project src/Transiever.SieveRuler.Cli --
 ```
 
+Optimization modes:
+
+* `conservative` merges exact single-condition equivalents.
+* `balanced` also merges action-equivalent single-condition rules across condition types and uses higher-confidence sender-domain inference.
+* `aggressive` keeps balanced merge behavior and applies broader sender-domain inference and subdomain collapse.
+
 Preview writes these artifacts without mutating the server:
 
 * `reconciled-rules.json`.
@@ -86,13 +92,14 @@ Use `--dry-run` with delete or prune to validate without mutating the server.
 ManageSieve configuration:
 
 ```text
-SIEVERULER_SIEVE_HOST=sieve.example.com
-SIEVERULER_SIEVE_PORT=4190
-SIEVERULER_SIEVE_USERNAME=user@example.com
-SIEVERULER_SIEVE_PASSWORD=secret
-SIEVERULER_SIEVE_SECURITY_MODE=StartTlsRequired
+TRANSIEVER_SIEVE_HOST=sieve.example.com
+TRANSIEVER_SIEVE_PORT=4190
+TRANSIEVER_SIEVE_USERNAME=user@example.com
+TRANSIEVER_SIEVE_PASSWORD=secret
+TRANSIEVER_SIEVE_SECURITY_MODE=StartTlsRequired
 ```
 
+Use `--sieve-host`, `--sieve-port`, `--sieve-username`, `--sieve-password`, and `--sieve-security-mode` to override those values for a targeted command.
 The port and security mode are optional.
 `ImplicitTls` is supported.
 Plaintext authentication is refused.

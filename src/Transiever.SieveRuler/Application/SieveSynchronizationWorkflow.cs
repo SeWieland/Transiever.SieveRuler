@@ -103,8 +103,11 @@ public sealed class SieveSynchronizationWorkflow(
                 composition.Diagnostics);
         }
 
+        HashSet<string> availableCapabilities = remote.Capabilities.SieveExtensions
+            .Concat(imported.DeclaredCapabilities)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         string[] missingCapabilities = composition.RequiredCapabilities
-            .Except(remote.Capabilities.SieveExtensions, StringComparer.OrdinalIgnoreCase)
+            .Except(availableCapabilities, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         if (missingCapabilities.Length > 0)
         {

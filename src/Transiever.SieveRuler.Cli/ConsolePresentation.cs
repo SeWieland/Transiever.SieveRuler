@@ -21,6 +21,7 @@ public static class ConsolePresentation
         Console.WriteLine();
         Console.WriteLine("Optimization: conservative, balanced, aggressive; aliases -o, -oo, -ooo.");
         Console.WriteLine("Synchronization options: --script-name, --adopt-compatible, --preserve-compatible, --dry-run.");
+        Console.WriteLine("ManageSieve options: --sieve-host, --sieve-port, --sieve-username, --sieve-password, --sieve-security-mode override TRANSIEVER_SIEVE_*.");
         Console.WriteLine("Generated managed rules include provider UI metadata comments for Open-Xchange-compatible rule editors.");
         Console.WriteLine("Preview preserves the current active script name by default; deploy activates the previewed candidate after creating any required server-side backup.");
         Console.WriteLine("Deploy prunes inactive SieveRuler history automatically, keeping the oldest backup plus the newest retained history scripts.");

@@ -1,4 +1,3 @@
-
 using Transiever.SieveRuler.Models;
 using System.Text;
 
@@ -24,8 +23,12 @@ public sealed class SieveGenerator : ISieveGenerator
         sb.AppendLine("# Review before installing on a Sieve-compatible mail server.");
         sb.AppendLine($"# Source: {SieveStringEscaper.EscapeComment(sourceFile)}");
         sb.AppendLine();
-        sb.AppendLine($"require {RenderStringList(capabilities)};");
-        sb.AppendLine();
+        if (capabilities.Count > 0)
+        {
+            sb.AppendLine($"require {RenderStringList(capabilities)};");
+            sb.AppendLine();
+        }
+
         sb.Append(body);
 
         return sb.ToString();
@@ -55,10 +58,7 @@ public sealed class SieveGenerator : ISieveGenerator
             .Cast<SieveRuleBlock>()
             .ToList();
 
-        var capabilities = new SortedSet<string>(StringComparer.Ordinal)
-        {
-            "fileinto"
-        };
+        var capabilities = new SortedSet<string>(StringComparer.Ordinal);
 
         foreach (string capability in ruleBlocks.SelectMany(block => block.RequiredCapabilities))
             capabilities.Add(capability);
@@ -68,10 +68,49 @@ public sealed class SieveGenerator : ISieveGenerator
 
     private static SieveRuleBlock? RenderRule(RuleDefinition rule)
     {
-        if (string.IsNullOrWhiteSpace(rule.TargetFolder))
+        SieveCondition? conditions = RenderConditionGroup(
+            rule.Conditions,
+            rule.ConditionMode);
+        if (conditions is null)
             return null;
 
-        var conditions = rule.Conditions
+        SieveCondition? exceptions = RenderExceptions(rule.Exceptions);
+        SieveCondition test = exceptions is null
+            ? conditions
+            : new SieveCondition(
+                $"allof ( {conditions.Test} , {exceptions.Test} )",
+                [.. conditions.RequiredCapabilities, .. exceptions.RequiredCapabilities]);
+
+        List<SieveAction> actions = GetEffectiveActions(rule)
+            .SelectMany(RenderAction)
+            .ToList();
+        if (actions.Count == 0)
+            return null;
+
+        var sb = new StringBuilder();
+
+        sb.AppendLine(SieveProviderMetadata.RenderFlag(rule, DateTimeOffset.UtcNow));
+        sb.AppendLine($"if {test.Test}");
+        sb.AppendLine("{");
+        foreach (SieveAction action in actions)
+            sb.AppendLine(action.Command);
+
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        return new SieveRuleBlock(
+            sb.ToString(),
+            [
+                .. test.RequiredCapabilities,
+                .. actions.SelectMany(action => action.RequiredCapabilities)
+            ]);
+    }
+
+    private static SieveCondition? RenderConditionGroup(
+        IReadOnlyList<RuleCondition> sourceConditions,
+        RuleConditionMode mode)
+    {
+        var conditions = sourceConditions
             .Select(RenderCondition)
             .Where(condition => condition is not null)
             .Cast<SieveCondition>()
@@ -80,36 +119,46 @@ public sealed class SieveGenerator : ISieveGenerator
         if (conditions.Count == 0)
             return null;
 
-        var sb = new StringBuilder();
-
-        sb.AppendLine(SieveProviderMetadata.RenderFlag(rule, DateTimeOffset.UtcNow));
-
         if (conditions.Count == 1)
-        {
-            sb.AppendLine($"if {conditions[0].Test}");
-        }
-        else
-        {
-            var combinator = rule.ConditionMode == RuleConditionMode.Any
-                ? "anyof"
-                : "allof";
+            return conditions[0];
 
-            sb.AppendLine(
-                $"if {combinator} ( {string.Join(" , ", conditions.Select(condition => condition.Test))} )");
-        }
-
-        sb.AppendLine("{");
-        sb.AppendLine($"fileinto \"{SieveStringEscaper.Escape(rule.TargetFolder)}\" ;");
-        sb.AppendLine("}");
-        sb.AppendLine();
-
-        return new SieveRuleBlock(
-            sb.ToString(),
+        string combinator = mode == RuleConditionMode.Any
+            ? "anyof"
+            : "allof";
+        return new SieveCondition(
+            $"{combinator} ( {string.Join(" , ", conditions.Select(condition => condition.Test))} )",
             conditions.SelectMany(condition => condition.RequiredCapabilities).ToArray());
+    }
+
+    private static SieveCondition? RenderExceptions(
+        IReadOnlyList<RuleCondition> sourceExceptions)
+    {
+        var exceptions = sourceExceptions
+            .Select(RenderCondition)
+            .Where(condition => condition is not null)
+            .Cast<SieveCondition>()
+            .ToList();
+
+        if (exceptions.Count == 0)
+            return null;
+
+        string test = exceptions.Count == 1
+            ? $"not {exceptions[0].Test}"
+            : $"not anyof ( {string.Join(" , ", exceptions.Select(condition => condition.Test))} )";
+        return new SieveCondition(
+            test,
+            exceptions.SelectMany(condition => condition.RequiredCapabilities).ToArray());
     }
 
     private static SieveCondition? RenderCondition(RuleCondition condition)
     {
+        if (condition.Type == RuleConditionType.HasAttachment)
+        {
+            return new SieveCondition(
+                "header :mime :anychild :contains \"Content-Disposition\" \"attachment\"",
+                ["mime"]);
+        }
+
         var values = condition.GetValues()
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => value.Trim())
@@ -142,6 +191,74 @@ public sealed class SieveGenerator : ISieveGenerator
         };
     }
 
+    private static IReadOnlyList<RuleAction> GetEffectiveActions(RuleDefinition rule)
+    {
+        if (rule.Actions.Count > 0)
+            return rule.Actions;
+
+        return string.IsNullOrWhiteSpace(rule.TargetFolder)
+            ? []
+            :
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = [rule.TargetFolder]
+                }
+            ];
+    }
+
+    private static IEnumerable<SieveAction> RenderAction(RuleAction action)
+    {
+        string[] values = action.GetValues()
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        switch (action.Type)
+        {
+            case RuleActionType.FileInto:
+                foreach (string value in values)
+                {
+                    yield return new SieveAction(
+                        $"fileinto \"{SieveStringEscaper.Escape(value)}\" ;",
+                        ["fileinto"]);
+                }
+
+                yield break;
+            case RuleActionType.CopyInto:
+                foreach (string value in values)
+                {
+                    yield return new SieveAction(
+                        $"fileinto :copy \"{SieveStringEscaper.Escape(value)}\" ;",
+                        ["copy", "fileinto"]);
+                }
+
+                yield break;
+            case RuleActionType.Redirect:
+                foreach (string value in values)
+                {
+                    yield return new SieveAction(
+                        $"redirect \"{SieveStringEscaper.Escape(value)}\" ;");
+                }
+
+                yield break;
+            case RuleActionType.SetFlags:
+                if (values.Length > 0)
+                {
+                    yield return new SieveAction(
+                        $"addflag {RenderStringOrList(values)} ;",
+                        ["imap4flags"]);
+                }
+
+                yield break;
+            case RuleActionType.Stop:
+                yield return new SieveAction("stop ;");
+                yield break;
+        }
+    }
+
     private static string RenderStringOrList(IReadOnlyCollection<string> values)
     {
         return values.Count == 1
@@ -160,6 +277,16 @@ public sealed class SieveGenerator : ISieveGenerator
     {
         public SieveCondition(string test)
             : this(test, [])
+        {
+        }
+    }
+
+    private sealed record SieveAction(
+        string Command,
+        IReadOnlyCollection<string> RequiredCapabilities)
+    {
+        public SieveAction(string command)
+            : this(command, [])
         {
         }
     }

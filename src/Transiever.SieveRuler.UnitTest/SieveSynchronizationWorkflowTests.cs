@@ -150,6 +150,76 @@ public sealed class SieveSynchronizationWorkflowTests
     }
 
     [Fact]
+    public async Task Preview_AcceptsCapabilitiesDeclaredByActiveScript()
+    {
+        string directory = CreateDirectory();
+
+        try
+        {
+            CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+            var serializer = new JsonRuleSerializer();
+            string rulesFile = Path.Combine(directory, "rules.json");
+            byte[] activeContent =
+                "require [\"body\", \"fileinto\", \"imap4flags\"];\r\nkeep;\r\n"u8.ToArray();
+
+            await serializer.SaveDocumentAsync(
+                new RuleDocument
+                {
+                    SourceId = "outlook",
+                    Rules =
+                    [
+                        new RuleDefinition
+                        {
+                            Name = "Read invoices",
+                            TargetFolder = "INBOX/Invoices",
+                            Conditions =
+                            [
+                                new RuleCondition
+                                {
+                                    Type = RuleConditionType.SubjectContains,
+                                    Values = ["invoice"]
+                                }
+                            ],
+                            Actions =
+                            [
+                                new RuleAction
+                                {
+                                    Type = RuleActionType.SetFlags,
+                                    Values = ["\\Seen"]
+                                },
+                                new RuleAction
+                                {
+                                    Type = RuleActionType.FileInto,
+                                    Values = ["INBOX/Invoices"]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                rulesFile,
+                cancellationToken);
+
+            PreviewSynchronizationResult result = await CreateWorkflow(
+                    FakeConnection.WithScripts(
+                        "Open-Xchange",
+                        ("Open-Xchange", activeContent)))
+                .PreviewAsync(
+                    CreatePreviewRequest(
+                        directory,
+                        rulesFile,
+                        Path.Combine(directory, "plan.json")),
+                    cancellationToken);
+
+            Assert.Equal(PreviewSynchronizationStatus.Prepared, result.Status);
+            Assert.Empty(result.MissingCapabilities);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task Rollback_PlanWithoutBackupReactivatesSourceScript()
     {
         string directory = CreateDirectory();

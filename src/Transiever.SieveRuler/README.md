@@ -3,8 +3,9 @@
 The library exposes:
 
 * `RuleDocument` and `RuleDefinition` as the JSON API.
+* Schema v1 conditions, exceptions, explicit actions, and the simple `targetFolder` shortcut.
 * `JsonRuleSerializer` with file and stream APIs.
-* Rule optimization and Sieve generation.
+* Action-aware rule optimization and Sieve generation.
 * Strict Sieve import, byte-preserving composition, and source-aware reconciliation.
 * Typed preview, deployment, rollback, and history workflows over `Transiever.ManageSieve`.
 
@@ -23,6 +24,7 @@ Rules contract and provider metadata details live in [../../docs/rules-and-metad
 In short:
 
 * Preview writes separate reconciled ownership and rendered candidate rule documents.
+* Preview capability checks accept both advertised ManageSieve extensions and active-script `require` evidence.
 * Deployment plans are version 1 and preserve the current active script name by default.
 * Active-script replacement creates a server-side backup before mutation.
 * Rollback restores that backup, or reactivates the recorded source script when no backup was created.

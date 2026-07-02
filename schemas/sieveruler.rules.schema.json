@@ -43,10 +43,22 @@
         "targetFolder": {
           "type": "string"
         },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
         "conditionMode": {
           "enum": ["All", "Any"]
         },
         "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "exceptions": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/condition"
@@ -83,7 +95,8 @@
             "ReceiverContains",
             "SubjectContains",
             "BodyContains",
-            "SubjectOrBodyContains"
+            "SubjectOrBodyContains",
+            "HasAttachment"
           ]
         },
         "values": {
@@ -91,6 +104,31 @@
           "items": {
             "type": "string"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": ["type", "values"],
+      "properties": {
+        "type": {
+          "enum": [
+            "FileInto",
+            "CopyInto",
+            "Redirect",
+            "SetFlags",
+            "Stop"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "value": {
+          "type": ["string", "null"]
         }
       },
       "additionalProperties": false

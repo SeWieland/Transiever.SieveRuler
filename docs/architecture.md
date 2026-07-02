@@ -27,6 +27,7 @@ The CLI owns argument parsing, environment configuration, prompts, presentation,
 `Transiever.SieveRuler` owns:
 
 * The provider-neutral JSON rules contract.
+* Conditions, exceptions, actions, and Sieve capability requirements.
 * Source-aware reconciliation and Sieve composition.
 * Compatibility metadata for generated managed rules.
 * synchronization planning, deployment validation, rollback, and retained-history policy.

@@ -30,6 +30,7 @@ public sealed class SieveImporter : ISieveImporter
         {
             new StringEnumJsonConverter<RuleConditionMode>(),
             new StringEnumJsonConverter<RuleConditionType>(),
+            new StringEnumJsonConverter<RuleActionType>(),
             new StringEnumJsonConverter<RuleOwnership>()
         }
     };
@@ -420,12 +421,57 @@ internal sealed class StrictSieveParser(string text)
             ParsedTest test = ParseTest(isTopLevel: true);
             Expect(SieveTokenKind.LeftBrace);
             ExpectIdentifier("fileinto");
+            bool copy = false;
+            var flags = new List<string>();
+            while (Current.Kind == SieveTokenKind.Identifier &&
+                Current.Value.StartsWith(':'))
+            {
+                if (Current.Value.Equals(":copy", StringComparison.OrdinalIgnoreCase))
+                {
+                    copy = true;
+                    position++;
+                    continue;
+                }
+
+                if (Current.Value.Equals(":flags", StringComparison.OrdinalIgnoreCase))
+                {
+                    position++;
+                    flags.AddRange(ParseStringOrList());
+                    continue;
+                }
+
+                throw new SieveParseException();
+            }
+
             string folder = Expect(SieveTokenKind.String).Value;
             Expect(SieveTokenKind.Semicolon);
+            var actions = new List<RuleAction>();
+            if (flags.Count > 0)
+            {
+                actions.Add(
+                    new RuleAction
+                    {
+                        Type = RuleActionType.SetFlags,
+                        Values = flags
+                    });
+                test.RequiredCapabilities.Add("imap4flags");
+            }
+
+            actions.Add(
+                new RuleAction
+                {
+                    Type = copy ? RuleActionType.CopyInto : RuleActionType.FileInto,
+                    Values = [folder]
+                });
+            test.RequiredCapabilities.Add("fileinto");
+            if (copy)
+                test.RequiredCapabilities.Add("copy");
+
             if (Current.IsIdentifier("stop"))
             {
                 position++;
                 Expect(SieveTokenKind.Semicolon);
+                actions.Add(new RuleAction { Type = RuleActionType.Stop });
             }
 
             sourceEnd = Expect(SieveTokenKind.RightBrace).End;
@@ -435,6 +481,7 @@ internal sealed class StrictSieveParser(string text)
                 Id = RuleFingerprint.Create(test.Mode, test.Conditions, folder),
                 Name = ReadRuleName(saved),
                 TargetFolder = folder,
+                Actions = actions,
                 ConditionMode = test.Mode,
                 Conditions = test.Conditions,
                 SourceId = "server",
@@ -868,21 +915,88 @@ internal static class SieveLexer
 internal static class RuleFingerprint
 {
     public static string Create(RuleDefinition rule) =>
-        Create(rule.ConditionMode, rule.Conditions, rule.TargetFolder);
+        Create(
+            rule.ConditionMode,
+            rule.Conditions,
+            rule.Exceptions,
+            GetEffectiveActions(rule));
 
     public static string Create(
         RuleConditionMode mode,
         IEnumerable<RuleCondition> conditions,
         string targetFolder)
     {
+        RuleAction[] actions = string.IsNullOrWhiteSpace(targetFolder)
+            ? []
+            :
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = [targetFolder]
+                }
+            ];
+
+        return Create(mode, conditions, [], actions);
+    }
+
+    private static string Create(
+        RuleConditionMode mode,
+        IEnumerable<RuleCondition> conditions,
+        IEnumerable<RuleCondition> exceptions,
+        IEnumerable<RuleAction> actions)
+    {
         string canonical = string.Join(
             "\n",
             conditions
-                .Select(condition =>
-                    $"{condition.Type}:{string.Join('|', condition.GetValues().Select(value => value.Trim().ToUpperInvariant()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))}")
+                .Select(condition => $"condition:{CanonicalCondition(condition)}")
                 .Order(StringComparer.Ordinal)) +
-            $"\n{mode}\n{targetFolder.Trim()}";
+            "\n" +
+            string.Join(
+                "\n",
+                exceptions
+                    .Select(condition => $"exception:{CanonicalCondition(condition)}")
+                    .Order(StringComparer.Ordinal)) +
+            "\n" +
+            string.Join(
+                "\n",
+                actions
+                    .Select(action => $"action:{CanonicalAction(action)}")
+                    .Order(StringComparer.Ordinal)) +
+            $"\n{mode}";
         return Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))[..16];
     }
+
+    private static IEnumerable<RuleAction> GetEffectiveActions(RuleDefinition rule)
+    {
+        if (rule.Actions.Count > 0)
+            return rule.Actions;
+
+        return string.IsNullOrWhiteSpace(rule.TargetFolder)
+            ? []
+            :
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = [rule.TargetFolder]
+                }
+            ];
+    }
+
+    private static string CanonicalCondition(RuleCondition condition) =>
+        $"{condition.Type}:{CanonicalValues(condition.GetValues())}";
+
+    private static string CanonicalAction(RuleAction action) =>
+        $"{action.Type}:{CanonicalValues(action.GetValues())}";
+
+    private static string CanonicalValues(IEnumerable<string> values) =>
+        string.Join(
+            '|',
+            values
+                .Select(value => value.Trim().ToUpperInvariant())
+                .Where(value => value.Length > 0)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal));
 }

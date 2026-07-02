@@ -1,4 +1,3 @@
-
 using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
@@ -19,16 +18,14 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
         foreach (var rule in sourceRules)
         {
-            if (!TryCreateGroupKey(rule, out var key))
+            if (!TryCreateCandidate(rule, mode, out var candidate))
             {
                 optimizedRules.Add(CloneRule(rule));
                 continue;
             }
 
-            var condition = rule.Conditions[0];
-            var values = CleanValues(condition.GetValues()).ToArray();
-
-            if (values.Length == 0)
+            if (candidate.ConditionType != RuleConditionType.HasAttachment &&
+                candidate.Values.Count == 0)
             {
                 optimizedRules.Add(CloneRule(rule));
                 diagnostics.Add(new RuleOptimizationDiagnostic
@@ -40,18 +37,20 @@ public sealed class RuleOptimizer : IRuleOptimizer
                 continue;
             }
 
-            if (!groups.TryGetValue(key, out var group))
+            if (!groups.TryGetValue(candidate.Key, out var group))
             {
                 group = new OptimizationGroup(
-                    key,
+                    candidate.Key,
                     optimizedRules.Count,
-                    DisplayRuleName(rule));
+                    DisplayRuleName(rule),
+                    candidate.Actions,
+                    candidate.Exceptions);
 
-                groups.Add(key, group);
+                groups.Add(candidate.Key, group);
                 optimizedRules.Add(BuildRule(group));
             }
 
-            group.AddRule(values);
+            group.AddRule(candidate.ConditionType, candidate.Values);
             optimizedRules[group.OutputIndex] = BuildRule(group);
         }
 
@@ -61,14 +60,18 @@ public sealed class RuleOptimizer : IRuleOptimizer
         {
             foreach (var group in groups.Values)
             {
-                if (group.Key.ConditionType == RuleConditionType.SenderContains)
+                if (group.TryGetValues(
+                    RuleConditionType.SenderContains,
+                    out HashSet<string> senderValues))
                 {
                     SenderDomainInferenceResult inference = SenderDomainInference.Apply(
-                        group.Values,
+                        senderValues,
                         mode,
                         group.Key.TargetFolder);
 
-                    group.ReplaceAllValues(inference.Values);
+                    group.ReplaceAllValues(
+                        RuleConditionType.SenderContains,
+                        inference.Values);
                     diagnostics.AddRange(inference.Diagnostics);
                 }
 
@@ -84,27 +87,95 @@ public sealed class RuleOptimizer : IRuleOptimizer
         };
     }
 
-    private static bool TryCreateGroupKey(
+    private static bool TryCreateCandidate(
         RuleDefinition rule,
-        out OptimizationKey key)
+        RuleOptimizationMode mode,
+        out OptimizationCandidate candidate)
     {
-        key = default;
+        candidate = default!;
 
         if (rule.Conditions.Count != 1)
             return false;
 
-        if (string.IsNullOrWhiteSpace(rule.TargetFolder))
+        IReadOnlyList<RuleAction> actions = GetEffectiveActions(rule);
+        if (actions.Count == 0)
+            return false;
+
+        string targetFolder = GetFirstDeliveryFolder(actions);
+        if (string.IsNullOrWhiteSpace(targetFolder))
             return false;
 
         var condition = rule.Conditions[0];
+        IReadOnlyList<RuleCondition> exceptions = rule.Exceptions
+            .Select(CloneCondition)
+            .ToList();
 
-        key = new OptimizationKey(
-            rule.TargetFolder.Trim(),
-            rule.ConditionMode,
-            condition.Type);
+        var key = new OptimizationKey(
+            targetFolder.Trim(),
+            CreateActionSignature(actions),
+            CreateConditionSignature(exceptions),
+            mode == RuleOptimizationMode.Conservative
+                ? condition.Type
+                : null);
+        candidate = new OptimizationCandidate(
+            key,
+            condition.Type,
+            CleanValues(condition.GetValues()).ToArray(),
+            actions,
+            exceptions);
 
         return true;
     }
+
+    private static IReadOnlyList<RuleAction> GetEffectiveActions(RuleDefinition rule)
+    {
+        if (rule.Actions.Count > 0)
+            return rule.Actions.Select(CloneAction).ToList();
+
+        return string.IsNullOrWhiteSpace(rule.TargetFolder)
+            ? []
+            :
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = [rule.TargetFolder.Trim()]
+                }
+            ];
+    }
+
+    private static string GetFirstDeliveryFolder(IEnumerable<RuleAction> actions)
+    {
+        foreach (RuleAction action in actions)
+        {
+            if (action.Type is not (RuleActionType.FileInto or RuleActionType.CopyInto))
+                continue;
+
+            string? folder = action.GetValues()
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+            if (!string.IsNullOrWhiteSpace(folder))
+                return folder.Trim();
+        }
+
+        return "";
+    }
+
+    private static string CreateActionSignature(IEnumerable<RuleAction> actions) =>
+        string.Join(
+            "\n",
+            actions.Select(action => $"{action.Type}:{CanonicalValues(action.GetValues())}"));
+
+    private static string CreateConditionSignature(IEnumerable<RuleCondition> conditions) =>
+        string.Join(
+            "\n",
+            conditions
+                .Select(condition => $"{condition.Type}:{CanonicalValues(condition.GetValues())}")
+                .Order(StringComparer.Ordinal));
+
+    private static string CanonicalValues(IEnumerable<string> values) =>
+        string.Join(
+            "|",
+            CleanValues(values).Select(value => value.ToUpperInvariant()));
 
     private static IEnumerable<string> CleanValues(IEnumerable<string> values)
     {
@@ -122,12 +193,23 @@ public sealed class RuleOptimizer : IRuleOptimizer
             Name = rule.Name,
             Id = rule.Id,
             TargetFolder = rule.TargetFolder,
+            Actions = rule.Actions.Select(CloneAction).ToList(),
             ConditionMode = rule.ConditionMode,
             Conditions = rule.Conditions.Select(CloneCondition).ToList(),
+            Exceptions = rule.Exceptions.Select(CloneCondition).ToList(),
             SourceId = rule.SourceId,
             Ownership = rule.Ownership,
             OriginalOrder = rule.OriginalOrder,
             RequiredCapabilities = [.. rule.RequiredCapabilities]
+        };
+    }
+
+    private static RuleAction CloneAction(RuleAction action)
+    {
+        return new RuleAction
+        {
+            Type = action.Type,
+            Values = CleanValues(action.GetValues()).ToList()
         };
     }
 
@@ -146,19 +228,14 @@ public sealed class RuleOptimizer : IRuleOptimizer
         {
             Name = group.RuleCount == 1
                 ? group.FirstRuleName
-                : $"Optimized: {group.Key.TargetFolder} / {group.Key.ConditionType}",
+                : $"Optimized: {group.Key.TargetFolder} / {group.ConditionSummary}",
             TargetFolder = group.Key.TargetFolder,
-            ConditionMode = group.Key.ConditionMode,
-            Conditions =
-            [
-                new RuleCondition
-                {
-                    Type = group.Key.ConditionType,
-                    Values = group.Values
-                        .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
-                        .ToList()
-                }
-            ],
+            Actions = group.Actions.Select(CloneAction).ToList(),
+            ConditionMode = group.ConditionBucketCount > 1
+                ? RuleConditionMode.Any
+                : RuleConditionMode.All,
+            Conditions = group.BuildConditions().ToList(),
+            Exceptions = group.Exceptions.Select(CloneCondition).ToList(),
             SourceId = "generated",
             Ownership = RuleOwnership.Managed
         };
@@ -174,8 +251,8 @@ public sealed class RuleOptimizer : IRuleOptimizer
             {
                 Severity = "Info",
                 Action = "MergedEquivalentRules",
-                Message = $"Merged {group.RuleCount} {group.Key.ConditionType} rules for '{group.Key.TargetFolder}'.",
-                Detail = $"{group.Values.Count} unique values."
+                Message = $"Merged {group.RuleCount} {group.ConditionSummary} rules for '{group.Key.TargetFolder}'.",
+                Detail = $"{group.ConditionBucketCount} condition bucket(s)."
             });
         }
     }
@@ -189,21 +266,33 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
     private readonly record struct OptimizationKey(
         string TargetFolder,
-        RuleConditionMode ConditionMode,
-        RuleConditionType ConditionType);
+        string ActionSignature,
+        string ExceptionSignature,
+        RuleConditionType? ConditionType);
+
+    private sealed record OptimizationCandidate(
+        OptimizationKey Key,
+        RuleConditionType ConditionType,
+        IReadOnlyList<string> Values,
+        IReadOnlyList<RuleAction> Actions,
+        IReadOnlyList<RuleCondition> Exceptions);
 
     private sealed class OptimizationGroup
     {
-        private readonly HashSet<string> values = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<RuleConditionType, HashSet<string>> conditionValues = [];
 
         public OptimizationGroup(
             OptimizationKey key,
             int outputIndex,
-            string firstRuleName)
+            string firstRuleName,
+            IReadOnlyList<RuleAction> actions,
+            IReadOnlyList<RuleCondition> exceptions)
         {
             Key = key;
             OutputIndex = outputIndex;
             FirstRuleName = firstRuleName;
+            Actions = actions;
+            Exceptions = exceptions;
         }
 
         public OptimizationKey Key { get; }
@@ -212,25 +301,66 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
         public string FirstRuleName { get; }
 
+        public IReadOnlyList<RuleAction> Actions { get; }
+
+        public IReadOnlyList<RuleCondition> Exceptions { get; }
+
         public int RuleCount { get; private set; }
 
-        public IReadOnlyCollection<string> Values => values;
+        public int ConditionBucketCount => conditionValues.Count;
+
+        public string ConditionSummary =>
+            conditionValues.Count == 1
+                ? conditionValues.Keys.Single().ToString()
+                : "Any";
 
         public void AddRule(
+            RuleConditionType conditionType,
             IEnumerable<string> ruleValues)
         {
             RuleCount++;
+
+            if (!conditionValues.TryGetValue(conditionType, out HashSet<string>? values))
+            {
+                values = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                conditionValues.Add(conditionType, values);
+            }
 
             foreach (var value in ruleValues)
                 values.Add(value);
         }
 
-        public void ReplaceAllValues(IEnumerable<string> replacements)
+        public bool TryGetValues(
+            RuleConditionType conditionType,
+            out HashSet<string> values) =>
+            conditionValues.TryGetValue(conditionType, out values!);
+
+        public void ReplaceAllValues(
+            RuleConditionType conditionType,
+            IEnumerable<string> replacements)
         {
+            if (!conditionValues.TryGetValue(conditionType, out HashSet<string>? values))
+                return;
+
             values.Clear();
 
             foreach (var replacement in replacements)
                 values.Add(replacement);
+        }
+
+        public IEnumerable<RuleCondition> BuildConditions()
+        {
+            foreach ((RuleConditionType conditionType, HashSet<string> values) in conditionValues
+                .OrderBy(item => item.Key.ToString(), StringComparer.Ordinal))
+            {
+                yield return new RuleCondition
+                {
+                    Type = conditionType,
+                    Values = values
+                        .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                };
+            }
         }
     }
 }

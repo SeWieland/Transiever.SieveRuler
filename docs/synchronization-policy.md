@@ -11,6 +11,7 @@ The operator-facing command surface lives in [../src/Transiever.SieveRuler.Cli/R
 Preview reads a source rules document and the active server script.
 It imports the strict compatible subset and preserves opaque content.
 It reconciles ownership, optionally optimizes managed rules, validates capabilities and space, and writes separate review artifacts.
+Capability validation accepts both ManageSieve-advertised extensions and extensions declared by the active script's leading `require` block.
 
 The source document is never replaced during preview.
 Combined state is written to `reconciled-rules.json`.

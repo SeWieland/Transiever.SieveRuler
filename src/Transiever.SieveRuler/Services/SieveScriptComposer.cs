@@ -40,6 +40,7 @@ public sealed class SieveScriptComposer(
         {
             new StringEnumJsonConverter<RuleConditionMode>(),
             new StringEnumJsonConverter<RuleConditionType>(),
+            new StringEnumJsonConverter<RuleActionType>(),
             new StringEnumJsonConverter<RuleOwnership>()
         }
     };
@@ -109,8 +110,6 @@ public sealed class SieveScriptComposer(
             SHA256.HashData(Convert.FromBase64String(metadata)));
         string bodyHash = Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(body)));
-        string requirementStatement =
-            $"require {RenderStringList(capabilities)};";
         var rulesRegionBuilder = new StringBuilder();
         AppendCrLf(rulesRegionBuilder, SieveImporter.RulesBegin);
         foreach (string chunk in Chunk(metadata, 3000))
@@ -128,9 +127,11 @@ public sealed class SieveScriptComposer(
             GetMergedRequireInsertionOffset(preservedImport),
             0,
             preservedText.Length);
-        string withRequirements = preservedText.Insert(
-            insertion,
-            requirementStatement + "\r\n\r\n");
+        string withRequirements = capabilities.Count == 0
+            ? preservedText
+            : preservedText.Insert(
+                insertion,
+                $"require {RenderStringList(capabilities)};\r\n\r\n");
         if (!withRequirements.EndsWith('\n'))
             withRequirements += "\r\n";
         if (!withRequirements.EndsWith("\r\n\r\n", StringComparison.Ordinal))

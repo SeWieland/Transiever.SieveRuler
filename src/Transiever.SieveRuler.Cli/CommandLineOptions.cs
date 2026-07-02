@@ -1,4 +1,5 @@
 using Transiever.SieveRuler.Models;
+using Transiever.SieveRuler.Services;
 using System.Globalization;
 
 namespace Transiever.SieveRuler.Cli;
@@ -45,6 +46,16 @@ public sealed class CommandLineOptions
 
     public bool PruneHistory { get; private init; } = true;
 
+    public string? SieveHost { get; private init; }
+
+    public int? SievePort { get; private init; }
+
+    public string? SieveUserName { get; private init; }
+
+    public string? SievePassword { get; private init; }
+
+    public SieveConnectionSecurity? SieveSecurity { get; private init; }
+
     public bool ShowHelp { get; private init; }
 
     public static CommandLineOptions Parse(IReadOnlyList<string> args)
@@ -77,6 +88,11 @@ public sealed class CommandLineOptions
         var dryRun = false;
         var historyLimit = 5;
         var pruneHistory = true;
+        string? sieveHost = null;
+        int? sievePort = null;
+        string? sieveUserName = null;
+        string? sievePassword = null;
+        SieveConnectionSecurity? sieveSecurity = null;
 
         if (command == SieveRulerCommand.Optimize &&
             index < args.Count &&
@@ -171,6 +187,22 @@ public sealed class CommandLineOptions
                 case "--no-prune-history":
                     pruneHistory = false;
                     break;
+                case "--sieve-host":
+                    sieveHost = ReadOptionValue(args, ref index, option);
+                    break;
+                case "--sieve-port":
+                    sievePort = ReadPortOption(args, ref index, option);
+                    break;
+                case "--sieve-username":
+                    sieveUserName = ReadOptionValue(args, ref index, option);
+                    break;
+                case "--sieve-password":
+                    sievePassword = ReadOptionValue(args, ref index, option);
+                    break;
+                case "--sieve-security-mode":
+                    sieveSecurity = ParseSieveSecurity(
+                        ReadOptionValue(args, ref index, option));
+                    break;
                 case "-h":
                 case "--help":
                     return new CommandLineOptions { ShowHelp = true };
@@ -209,7 +241,12 @@ public sealed class CommandLineOptions
             Force = force,
             DryRun = dryRun,
             HistoryLimit = historyLimit,
-            PruneHistory = pruneHistory
+            PruneHistory = pruneHistory,
+            SieveHost = sieveHost,
+            SievePort = sievePort,
+            SieveUserName = sieveUserName,
+            SievePassword = sievePassword,
+            SieveSecurity = sieveSecurity
         };
     }
 
@@ -287,6 +324,38 @@ public sealed class CommandLineOptions
         }
 
         return parsed;
+    }
+
+    private static int ReadPortOption(
+        IReadOnlyList<string> args,
+        ref int index,
+        string option)
+    {
+        string value = ReadOptionValue(args, ref index, option);
+        if (!int.TryParse(
+            value,
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out int parsed) ||
+            parsed is < 1 or > 65535)
+        {
+            throw new ArgumentException($"{option} must be a TCP port from 1 to 65535.");
+        }
+
+        return parsed;
+    }
+
+    private static SieveConnectionSecurity ParseSieveSecurity(string value)
+    {
+        if (Enum.TryParse(
+            value,
+            ignoreCase: true,
+            out SieveConnectionSecurity mode))
+        {
+            return mode;
+        }
+
+        throw new ArgumentException($"Unknown Sieve security mode: {value}");
     }
 
     private static RuleOptimizationMode ParseOptimizationMode(string value)

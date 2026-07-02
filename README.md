@@ -39,6 +39,7 @@ Its schema ID is `urn:sieveruler:rules:v1`.
 ## Feature Summary
 
 * Provider-neutral v1 rules schema and serializer.
+* Explicit conditions, exceptions, and actions for stable server-side Sieve behavior.
 * Strict Sieve import, source-aware reconciliation, and compatible-rule optimization.
 * ManageSieve preview and deployment workflows with active-script-preserving defaults.
 * Rollback and retained-history operations for SieveRuler-managed deployments.

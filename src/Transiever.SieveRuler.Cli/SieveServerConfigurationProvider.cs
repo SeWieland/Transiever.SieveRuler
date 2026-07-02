@@ -4,25 +4,23 @@ namespace Transiever.SieveRuler.Cli;
 
 public interface ISieveServerConfigurationProvider
 {
-    SieveServerConfiguration GetConfiguration();
+    SieveServerConfiguration GetConfiguration(CommandLineOptions options);
 }
 
 public sealed class EnvironmentSieveServerConfigurationProvider
     : ISieveServerConfigurationProvider
 {
-    public SieveServerConfiguration GetConfiguration()
+    public SieveServerConfiguration GetConfiguration(CommandLineOptions options)
     {
-        string host = Required("SIEVERULER_SIEVE_HOST");
-        string userName = Required("SIEVERULER_SIEVE_USERNAME");
-        string password = Environment.GetEnvironmentVariable(
-            "SIEVERULER_SIEVE_PASSWORD") ?? ReadPassword();
-        int port = int.TryParse(
-            Environment.GetEnvironmentVariable("SIEVERULER_SIEVE_PORT"),
+        string host = options.SieveHost ?? Required("HOST");
+        string userName = options.SieveUserName ?? Required("USERNAME");
+        string password = options.SievePassword ?? Read("PASSWORD") ?? ReadPassword();
+        int port = options.SievePort ?? (int.TryParse(
+            Read("PORT"),
             out int configuredPort)
             ? configuredPort
-            : SieveServerConfiguration.DefaultPort;
-        string? configuredSecurity =
-            Environment.GetEnvironmentVariable("SIEVERULER_SIEVE_SECURITY_MODE");
+            : SieveServerConfiguration.DefaultPort);
+        string? configuredSecurity = Read("SECURITY_MODE");
         if (configuredSecurity?.Equals(
             "PlainText",
             StringComparison.OrdinalIgnoreCase) == true)
@@ -32,11 +30,12 @@ public sealed class EnvironmentSieveServerConfigurationProvider
         }
 
         SieveConnectionSecurity security = Enum.TryParse(
-            configuredSecurity,
-            ignoreCase: true,
-            out SieveConnectionSecurity configuredMode)
-            ? configuredMode
-            : SieveConnectionSecurity.StartTlsRequired;
+                configuredSecurity,
+                ignoreCase: true,
+                out SieveConnectionSecurity configuredMode)
+                ? configuredMode
+                : SieveConnectionSecurity.StartTlsRequired;
+        security = options.SieveSecurity ?? security;
 
         return new SieveServerConfiguration(
             host,
@@ -46,20 +45,23 @@ public sealed class EnvironmentSieveServerConfigurationProvider
             security);
     }
 
-    private static string Required(string name)
+    private static string Required(string suffix)
     {
-        return Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
+        return Read(suffix) is { Length: > 0 } value
             ? value
             : throw new InvalidOperationException(
-                $"Environment variable {name} is required.");
+                $"Environment variable TRANSIEVER_SIEVE_{suffix} is required.");
     }
+
+    private static string? Read(string suffix) =>
+        Environment.GetEnvironmentVariable($"TRANSIEVER_SIEVE_{suffix}");
 
     private static string ReadPassword()
     {
         if (Console.IsInputRedirected)
         {
             throw new InvalidOperationException(
-                "SIEVERULER_SIEVE_PASSWORD is required when input is redirected.");
+                "TRANSIEVER_SIEVE_PASSWORD is required when input is redirected.");
         }
 
         Console.Write("ManageSieve password: ");

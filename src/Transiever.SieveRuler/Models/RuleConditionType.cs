@@ -9,5 +9,6 @@ public enum RuleConditionType
     ReceiverContains,
     SubjectContains,
     BodyContains,
-    SubjectOrBodyContains
+    SubjectOrBodyContains,
+    HasAttachment
 }
