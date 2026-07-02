@@ -12,6 +12,9 @@ The library exposes:
 The package includes the v1 JSON schema.
 All asynchronous I/O accepts `CancellationToken`.
 
+GitHub releases publish this library to NuGet.org.
+Release versions are calculated by semantic-release and are not committed into the project file.
+
 Expected preview, deployment, rollback, and history outcomes use typed statuses.
 Malformed inputs, stale state, I/O, and protocol failures throw.
 

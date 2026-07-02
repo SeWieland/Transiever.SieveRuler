@@ -11,9 +11,12 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srtx</ToolCommandName>
     <PackageId>Transiever.SieveRuler.Cli</PackageId>
+    <Description>Command-line interface for Transiever.SieveRuler.</Description>
+    <PackageTags>sieve;rules;json;managesieve;email;cli;tool</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.1.0</Version>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

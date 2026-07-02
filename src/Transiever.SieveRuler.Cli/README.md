@@ -29,6 +29,9 @@ During development, replace `srtx` with:
 dotnet run --project src/Transiever.SieveRuler.Cli --
 ```
 
+GitHub releases attach self-contained `srtx` assets for `win-x64`, `win-x86`, and `linux-x64`.
+.NET does not define a portable `linux-x86` RID, so no Linux x86 asset is produced.
+
 Optimization modes:
 
 * `conservative` merges exact single-condition equivalents.
