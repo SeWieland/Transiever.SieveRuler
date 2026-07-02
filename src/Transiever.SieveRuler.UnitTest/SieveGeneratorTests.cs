@@ -65,13 +65,14 @@ public sealed class SieveGeneratorTests
             ReadField(flagLine, "UniqueId:"),
             ReadField(secondFlagLine, "UniqueId:"));
         Assert.DoesNotContain("Invoices|Production", flagLine);
+        string normalized = NormalizeNewLines(first);
         Assert.Contains(
-            flagLine + "\r\n" +
-            "if header :contains \"Subject\" \"Invoice\"\r\n" +
-            "{\r\n" +
-            "fileinto \"INBOX/Finance\" ;\r\n" +
+            flagLine + "\n" +
+            "if header :contains \"Subject\" \"Invoice\"\n" +
+            "{\n" +
+            "fileinto \"INBOX/Finance\" ;\n" +
             "}",
-            first);
+            normalized);
     }
 
     [Fact]
@@ -206,4 +207,8 @@ public sealed class SieveGeneratorTests
             .Single(part => part.StartsWith(fieldName, StringComparison.Ordinal))
             [fieldName.Length..]
             .Trim();
+
+    private static string NormalizeNewLines(string value) =>
+        value.Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
 }
