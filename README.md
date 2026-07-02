@@ -1,22 +1,22 @@
 # Transiever.SieveRuler
 
-Cross-platform .NET library and CLI for turning a provider-neutral JSON rule document into Sieve,
-optimizing compatible rules, reconciling existing scripts, and deploying changes safely through ManageSieve.
+Cross-platform .NET library and CLI for turning provider-neutral JSON rule documents into Sieve.
+It optimizes compatible rules, reconciles existing scripts, and deploys changes safely through ManageSieve.
 
-`Transiever.SieveRuler` is the common engine behind source adapters such as `Transiever.OutlookResiever`,
-and it is also intended for future Thunderbird or other provider-specific importers.
+`Transiever.SieveRuler` is the common engine behind source adapters such as `Transiever.OutlookResiever`.
+It is also intended for future Thunderbird or other provider-specific importers.
 
-The rule model and generated Sieve are provider-agnostic in intent,
-but provider UI metadata has only been tested and validated against [mailbox.org] and the [Open-Xchange] implementation it uses.
+The rule model and generated Sieve are provider-agnostic in intent.
+Provider UI metadata has only been tested and validated against [mailbox.org] and the [Open-Xchange] implementation it uses.
 
 ## Documentation Map
 
 Start here, then follow the component-specific guides:
 
-* [CLI guide](src/Transiever.SieveRuler.Cli/README.md) for commands, environment variables, preview artifacts, deployment, rollback, and history workflows.
+* [CLI guide](src/Transiever.SieveRuler.Cli/README.md) for CLI commands, environment variables, and workflow artifacts.
 * [library guide](src/Transiever.SieveRuler/README.md) for the public model, serializer, reconciliation, and typed workflow APIs.
 * [architecture](docs/architecture.md) for system boundaries and responsibility split.
-* [rules and metadata](docs/rules-and-metadata.md) for the rules contract, composition, and generated `## Flag:` compatibility rules.
+* [rules and metadata](docs/rules-and-metadata.md) for the rules contract, composition, and generated `## Flag:` compatibility metadata.
 * [synchronization policy](docs/synchronization-policy.md) for preview, deployment, rollback, and retained-history behavior.
 * [rules schema](schemas/sieveruler.rules.schema.json) for the v1 JSON contract.
 
@@ -30,7 +30,8 @@ src/Transiever.SieveRuler.Cli.UnitTest/    CLI tests
 src/Transiever.SieveRuler.IntegrationTest/ Docker-backed ManageSieve test
 ```
 
-The Docker-backed integration test uses a pinned Dovecot/Pigeonhole container and pins the container certificate through the ManageSieve internal test seam.
+The Docker-backed integration test uses a pinned Dovecot/Pigeonhole container.
+It pins the container certificate through the ManageSieve internal test seam.
 
 The public JSON contract is [`schemas/sieveruler.rules.schema.json`](schemas/sieveruler.rules.schema.json).
 Its schema ID is `urn:sieveruler:rules:v1`.
@@ -54,8 +55,7 @@ dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 
 ## Publication Note
 
-The current development build references the sibling `Transiever.ManageSieve` project.
-This must become a versioned package reference before independent publication.
+The current development build consumes `Transiever.ManageSieve` through a versioned NuGet package.
 
 [mailbox.org]: https://mailbox.org/
 [Open-Xchange]: https://www.open-xchange.com/

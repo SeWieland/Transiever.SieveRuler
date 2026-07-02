@@ -3,8 +3,13 @@
 ## Project
 
 `Transiever.SieveRuler` is a cross-platform .NET rules engine and CLI.
-It owns the provider-neutral JSON rules contract, optimization, Sieve import and rendering,
-preservation and reconciliation policy, and safe ManageSieve deployment.
+It owns these engine concerns:
+
+* The provider-neutral JSON rules contract.
+* Optimization.
+* Sieve import and rendering.
+* Preservation and reconciliation policy.
+* Safe ManageSieve deployment.
 
 It must not reference Outlook, Thunderbird, COM, or another source adapter.
 Source-specific repositories produce `Transiever.SieveRuler` rule documents and may wrap its public operations.
@@ -48,8 +53,8 @@ The exact metadata shape is documented in `docs/rules-and-metadata.md`.
 ## Safety
 
 Preview and dry-run never mutate a server.
-Preview, deployment, rollback, and history behavior are intentionally documented once in `docs/synchronization-policy.md`
-and operationally in `src/Transiever.SieveRuler.Cli/README.md`.
+Preview, deployment, rollback, and history behavior are intentionally documented once in `docs/synchronization-policy.md`.
+Operator-facing details live in `src/Transiever.SieveRuler.Cli/README.md`.
 Keep those files authoritative when policy changes.
 Plaintext credentials are prohibited.
 
@@ -63,10 +68,10 @@ dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 ```
 
 Docker integration tests skip when Docker is unavailable.
-They build a pinned Dovecot/Pigeonhole image, use the image's bundled test certificate through the ManageSieve internal certificate-validation seam,
-and wait on the mapped host port rather than requiring extra socket tooling inside the container.
+They build a pinned Dovecot/Pigeonhole image.
+They use the image's bundled test certificate through the ManageSieve internal certificate-validation seam.
+They wait on the mapped host port instead of requiring extra socket tooling inside the container.
 Keep the library and CLI independently documented.
 Update this file, both READMEs, architecture, JSON schema, tests, and changelog when their contracts change.
 
-Until publication, the library has one temporary sibling project reference to `Transiever.ManageSieve`.
-Replace it with a versioned package before release.
+The library consumes `Transiever.ManageSieve` through a versioned NuGet package.

@@ -1,8 +1,9 @@
 # `srtx`
 
 This guide is the canonical command reference for the SieveRuler CLI.
-Repository overview lives in [../../README.md](../../README.md), deployment-policy detail lives in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md),
-and generated metadata constraints live in [../../docs/rules-and-metadata.md](../../docs/rules-and-metadata.md).
+Repository overview lives in [../../README.md](../../README.md).
+Deployment-policy detail lives in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md).
+Generated metadata constraints live in [../../docs/rules-and-metadata.md](../../docs/rules-and-metadata.md).
 
 Commands:
 
@@ -28,7 +29,13 @@ During development, replace `srtx` with:
 dotnet run --project src/Transiever.SieveRuler.Cli --
 ```
 
-Preview writes `reconciled-rules.json`, `candidate-rules.json`, `server-active.sieve`, `candidate.sieve`, and `deployment-plan.json` without mutating the server.
+Preview writes these artifacts without mutating the server:
+
+* `reconciled-rules.json`.
+* `candidate-rules.json`.
+* `server-active.sieve`.
+* `candidate.sieve`.
+* `deployment-plan.json`.
 
 * `reconciled-rules.json` is the ownership review document.
 * `candidate-rules.json` contains the managed rules rendered into the candidate script.
@@ -44,20 +51,23 @@ Canonical workflow and policy details live in [../../docs/synchronization-policy
 This file keeps the command-facing behavior and operator guidance.
 
 Deployment validates the exact previewed candidate and active-script snapshot.
-When the target is the current active script, deployment writes a server-side `srtx-backup-*` copy of the previous content,
-then replaces the active script in place.
+When the target is the current active script, deployment writes a server-side `srtx-backup-*` copy of the previous content.
+It then replaces the active script in place.
 
 When the target is not active, deployment uploads and activates it.
-After a successful deployment, `srtx` prunes inactive SieveRuler-owned history scripts named `srtx-YYYYMMDDHHMMSS-*` or `srtx-backup-YYYYMMDDHHMMSS-*`.
+After a successful deployment, `srtx` prunes inactive SieveRuler-owned history scripts.
+Pruned names match `srtx-YYYYMMDDHHMMSS-*` or `srtx-backup-YYYYMMDDHHMMSS-*`.
 
 The default retention keeps the oldest backup plus the newest 5 remaining history scripts.
 
-Use `--history-limit <count>` to change the newest-history count, or `--no-prune-history` to disable deletion.
+Use `--history-limit <count>` to change the newest-history count.
+Use `--no-prune-history` to disable deletion.
 If `HAVESPACE` fails before upload, deployment runs the same safe prune pass, refreshes state, and retries the quota check once.
 
 Rollback validates the plan and current active candidate before changing the server.
 Plans with a server-side backup restore that backup into the target script.
-Plans without a backup reactivate the recorded source script or disable active Sieve processing if the preview started with no active script.
+Plans without a backup reactivate the recorded source script.
+They disable active Sieve processing if the preview started with no active script.
 
 `--force` bypasses only the current-active candidate mismatch check.
 Backup and content hash validation still apply.

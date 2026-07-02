@@ -2,13 +2,11 @@
 
 The library exposes:
 
-* `RuleDocument` and `RuleDefinition` as the JSON API;
-* `JsonRuleSerializer` with file and stream APIs;
-* rule optimization and Sieve generation;
-* strict Sieve import, byte-preserving composition, and source-aware
-  reconciliation;
-* typed preview, deployment, rollback, and history workflows over
-  `Transiever.ManageSieve`.
+* `RuleDocument` and `RuleDefinition` as the JSON API.
+* `JsonRuleSerializer` with file and stream APIs.
+* Rule optimization and Sieve generation.
+* Strict Sieve import, byte-preserving composition, and source-aware reconciliation.
+* Typed preview, deployment, rollback, and history workflows over `Transiever.ManageSieve`.
 
 The package includes the v1 JSON schema.
 All asynchronous I/O accepts `CancellationToken`.
@@ -24,13 +22,14 @@ Rules contract and provider metadata details live in [../../docs/rules-and-metad
 
 In short:
 
-* preview writes separate reconciled ownership and rendered candidate rule documents;
-* deployment plans are version 1 and preserve the current active script name by default;
-* active-script replacement creates a server-side backup before mutation;
-* rollback restores that backup, or reactivates the recorded source script when no backup was created;
-* generated managed rules include Open-Xchange-compatible `## Flag:` comments with stable IDs and rule names for provider UIs;
-* deployment can prune inactive SieveRuler-owned history, keeping the oldest backup plus the newest 5 remaining history scripts by default;
-* history restore creates a fresh backup before changing active filtering and can restore the original unmanaged or no-active state when a retained marker exists.
+* Preview writes separate reconciled ownership and rendered candidate rule documents.
+* Deployment plans are version 1 and preserve the current active script name by default.
+* Active-script replacement creates a server-side backup before mutation.
+* Rollback restores that backup, or reactivates the recorded source script when no backup was created.
+* Generated managed rules include Open-Xchange-compatible `## Flag:` comments with stable IDs and rule names for provider UIs.
+* Deployment can prune inactive SieveRuler-owned history, keeping the oldest backup plus the newest 5 remaining history scripts by default.
+* History restore creates a fresh backup before changing active filtering.
+* History restore can restore the original unmanaged or no-active state when a retained marker exists.
 
 SieveRuler is designed to stay Sieve-provider agnostic.
 However, provider UI metadata compatibility is currently only validated against mailbox.org's Open-Xchange implementation.

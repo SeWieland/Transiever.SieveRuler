@@ -26,9 +26,9 @@ The CLI owns argument parsing, environment configuration, prompts, presentation,
 
 `Transiever.SieveRuler` owns:
 
-* the provider-neutral JSON rules contract;
-* source-aware reconciliation and Sieve composition;
-* compatibility metadata for generated managed rules;
+* The provider-neutral JSON rules contract.
+* Source-aware reconciliation and Sieve composition.
+* Compatibility metadata for generated managed rules.
 * synchronization planning, deployment validation, rollback, and retained-history policy.
 
 `Transiever.ManageSieve` does not own deployment policy.
@@ -38,5 +38,5 @@ It provides the protocol primitives that SieveRuler composes into those workflow
 
 Use the focused docs instead of restating the same policy in multiple places:
 
-* [rules-and-metadata](rules-and-metadata.md) for schema, composition, and `## Flag:` compatibility constraints;
+* [rules-and-metadata](rules-and-metadata.md) for schema, composition, and `## Flag:` compatibility constraints.
 * [synchronization-policy](synchronization-policy.md) for preview artifacts, deployment semantics, rollback behavior, and history retention.

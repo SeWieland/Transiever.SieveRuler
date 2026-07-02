@@ -13,8 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Temporary until Transiever is published as a versioned NuGet package. -->
-    <ProjectReference Include="..\..\..\ManageSieve\src\Transiever.ManageSieve\Transiever.ManageSieve.csproj" />
+    <PackageReference Include="Transiever.ManageSieve" Version="1.0.0-beta.1" />
   </ItemGroup>
 
   <ItemGroup>
