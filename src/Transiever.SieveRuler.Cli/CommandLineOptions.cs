@@ -1,6 +1,6 @@
+using System.Globalization;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
-using System.Globalization;
 
 namespace Transiever.SieveRuler.Cli;
 

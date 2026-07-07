@@ -1,15 +1,15 @@
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
-using Transiever.SieveRuler.Application;
-using Transiever.SieveRuler.Models;
-using Transiever.SieveRuler.Services;
 using System.Diagnostics;
 using System.Net.Security;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Transiever.ManageSieve;
+using Transiever.SieveRuler.Application;
+using Transiever.SieveRuler.Models;
+using Transiever.SieveRuler.Services;
 
 namespace Transiever.SieveRuler.IntegrationTest;
 

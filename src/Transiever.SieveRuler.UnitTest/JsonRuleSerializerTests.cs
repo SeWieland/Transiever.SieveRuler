@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
-using System.Text.Json;
 
 namespace Transiever.SieveRuler.UnitTest;
 

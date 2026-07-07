@@ -1,8 +1,8 @@
-using Transiever.SieveRuler.Models;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
 

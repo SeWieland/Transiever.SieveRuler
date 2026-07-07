@@ -1,5 +1,4 @@
 using Transiever.SieveRuler.Services;
-using CommandLineOptions = global::Transiever.SieveRuler.Cli.CommandLineOptions;
 using Provider = global::Transiever.SieveRuler.Cli.EnvironmentSieveServerConfigurationProvider;
 
 namespace Transiever.SieveRuler.Cli.UnitTest;

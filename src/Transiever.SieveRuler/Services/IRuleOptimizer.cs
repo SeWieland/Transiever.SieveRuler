@@ -1,4 +1,3 @@
-
 using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;

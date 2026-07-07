@@ -1,7 +1,6 @@
+using System.Text;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Transiever.SieveRuler.UnitTest;
 

@@ -1,7 +1,6 @@
+using System.Text;
 using Transiever.SieveRuler.Application;
 using Transiever.SieveRuler.Models;
-using Transiever.SieveRuler.Services;
-using System.Text;
 
 namespace Transiever.SieveRuler.Cli;
 

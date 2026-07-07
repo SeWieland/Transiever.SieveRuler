@@ -1,10 +1,9 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using Transiever.ManageSieve;
 using Transiever.SieveRuler.Application;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 
 namespace Transiever.SieveRuler.UnitTest;
 

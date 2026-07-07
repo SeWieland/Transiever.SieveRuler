@@ -1,5 +1,5 @@
-using Transiever.SieveRuler.Models;
 using System.Text;
+using Transiever.SieveRuler.Models;
 
 namespace Transiever.SieveRuler.Services;
 

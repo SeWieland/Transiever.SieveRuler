@@ -1,8 +1,5 @@
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
-using CommandLineOptions = global::Transiever.SieveRuler.Cli.CommandLineOptions;
-using SieveRulerHistoryAction = global::Transiever.SieveRuler.Cli.SieveRulerHistoryAction;
-using SieveRulerCommand = global::Transiever.SieveRuler.Cli.SieveRulerCommand;
 
 namespace Transiever.SieveRuler.Cli.UnitTest;
 
