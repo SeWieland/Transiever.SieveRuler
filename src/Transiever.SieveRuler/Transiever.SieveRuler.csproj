@@ -13,9 +13,14 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
+    <ManageSieveProject>..\..\..\ManageSieve\src\Transiever.ManageSieve\Transiever.ManageSieve.csproj</ManageSieveProject>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="Exists('$(ManageSieveProject)')">
+    <ProjectReference Include="$(ManageSieveProject)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists('$(ManageSieveProject)')">
     <PackageReference Include="Transiever.ManageSieve" Version="1.0.0-beta.1" />
   </ItemGroup>
 

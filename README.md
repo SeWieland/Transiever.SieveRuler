@@ -63,7 +63,5 @@ Beta prereleases come from `dev` and may be unstable.
 Releases publish the library and `srtx` .NET tool packages to NuGet.org.
 They also attach self-contained `srtx` assets for `win-x64`, `win-x86`, and `linux-x64`.
 
-The current development build consumes `Transiever.ManageSieve` through a versioned NuGet package.
-
 [mailbox.org]: https://mailbox.org/
 [Open-Xchange]: https://www.open-xchange.com/

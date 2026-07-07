@@ -77,7 +77,8 @@ Capability preview combines ManageSieve-advertised extensions with active-script
 `CHECKSCRIPT` remains the final server-side validation before deployment.
 Plaintext credentials are prohibited.
 
-The library consumes `Transiever.ManageSieve` through a versioned NuGet package.
+Local umbrella development uses the sibling `Transiever.ManageSieve` project when present.
+Standalone public builds fall back to teh public `Transiever.ManageSieve` nuget package.
 
 ## When Docs Change
 
