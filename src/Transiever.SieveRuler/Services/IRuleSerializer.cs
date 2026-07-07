@@ -7,16 +7,6 @@ namespace Transiever.SieveRuler.Services;
 /// </summary>
 public interface IRuleSerializer
 {
-    Task SaveAsync(
-        IEnumerable<RuleDefinition> rules,
-        string file,
-        string sourceId = "generic",
-        CancellationToken cancellationToken = default);
-
-    Task<List<RuleDefinition>> LoadAsync(
-        string file,
-        CancellationToken cancellationToken = default);
-
     Task SaveDocumentAsync(
         RuleDocument document,
         string file,

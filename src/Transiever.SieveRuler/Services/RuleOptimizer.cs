@@ -120,7 +120,7 @@ public sealed class RuleOptimizer : IRuleOptimizer
         candidate = new OptimizationCandidate(
             key,
             condition.Type,
-            CleanValues(condition.GetValues()).ToArray(),
+            CleanValues(condition.Values).ToArray(),
             actions,
             exceptions);
 
@@ -151,7 +151,7 @@ public sealed class RuleOptimizer : IRuleOptimizer
             if (action.Type is not (RuleActionType.FileInto or RuleActionType.CopyInto))
                 continue;
 
-            string? folder = action.GetValues()
+            string? folder = action.Values
                 .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
             if (!string.IsNullOrWhiteSpace(folder))
                 return folder.Trim();
@@ -163,13 +163,13 @@ public sealed class RuleOptimizer : IRuleOptimizer
     private static string CreateActionSignature(IEnumerable<RuleAction> actions) =>
         string.Join(
             "\n",
-            actions.Select(action => $"{action.Type}:{CanonicalValues(action.GetValues())}"));
+            actions.Select(action => $"{action.Type}:{CanonicalValues(action.Values)}"));
 
     private static string CreateConditionSignature(IEnumerable<RuleCondition> conditions) =>
         string.Join(
             "\n",
             conditions
-                .Select(condition => $"{condition.Type}:{CanonicalValues(condition.GetValues())}")
+                .Select(condition => $"{condition.Type}:{CanonicalValues(condition.Values)}")
                 .Order(StringComparer.Ordinal));
 
     private static string CanonicalValues(IEnumerable<string> values) =>
@@ -209,7 +209,7 @@ public sealed class RuleOptimizer : IRuleOptimizer
         return new RuleAction
         {
             Type = action.Type,
-            Values = CleanValues(action.GetValues()).ToList()
+            Values = CleanValues(action.Values).ToList()
         };
     }
 
@@ -218,7 +218,7 @@ public sealed class RuleOptimizer : IRuleOptimizer
         return new RuleCondition
         {
             Type = condition.Type,
-            Values = CleanValues(condition.GetValues()).ToList()
+            Values = CleanValues(condition.Values).ToList()
         };
     }
 

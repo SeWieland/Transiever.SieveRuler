@@ -10,7 +10,7 @@ internal static class SieveProviderMetadata
 {
     public const string FlagPrefix = "## Flag:";
 
-    public static string RenderFlag(RuleDefinition rule, DateTimeOffset _)
+    public static string RenderFlag(RuleDefinition rule)
     {
         string name = SanitizeCommentField(rule.Name);
 

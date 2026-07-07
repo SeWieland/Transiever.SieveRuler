@@ -1,5 +1,5 @@
-using Transiever.SieveRuler.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Services;
 
@@ -15,26 +15,12 @@ public sealed class JsonRuleSerializer : IRuleSerializer
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters =
         {
-            new StringEnumJsonConverter<RuleConditionMode>(),
-            new StringEnumJsonConverter<RuleConditionType>(),
-            new StringEnumJsonConverter<RuleActionType>(),
-            new StringEnumJsonConverter<RuleOwnership>()
+            new JsonStringEnumConverter<RuleConditionMode>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleConditionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleActionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
-
-    public Task SaveAsync(
-        IEnumerable<RuleDefinition> rules,
-        string file,
-        string sourceId = "generic",
-        CancellationToken cancellationToken = default) =>
-        SaveDocumentAsync(
-            new RuleDocument
-            {
-                SourceId = ValidateSourceId(sourceId),
-                Rules = rules.ToList()
-            },
-            file,
-            cancellationToken);
 
     public async Task SaveDocumentAsync(
         RuleDocument document,
@@ -60,11 +46,6 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             Options,
             cancellationToken);
     }
-
-    public async Task<List<RuleDefinition>> LoadAsync(
-        string file,
-        CancellationToken cancellationToken = default) =>
-        (await LoadDocumentAsync(file, cancellationToken)).Rules;
 
     public async Task<RuleDocument> LoadDocumentAsync(
         string file,

@@ -39,6 +39,7 @@ Neither may assume Windows.
 Rules schema v1 uses `$schema: urn:sieveruler:rules:v1`, `schemaVersion: 1`, and a non-empty document `sourceId`.
 A rule can override `sourceId`; otherwise it belongs to the document source.
 Schema v1 includes explicit `actions` and `exceptions`.
+Conditions and actions use `values` arrays.
 Keep `targetFolder` as the simple `FileInto` shortcut while existing tools still benefit from it.
 
 Do not carry pre-public migration paths for old development artifacts.

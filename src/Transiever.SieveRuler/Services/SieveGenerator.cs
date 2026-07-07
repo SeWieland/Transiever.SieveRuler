@@ -89,7 +89,7 @@ public sealed class SieveGenerator : ISieveGenerator
 
         var sb = new StringBuilder();
 
-        sb.AppendLine(SieveProviderMetadata.RenderFlag(rule, DateTimeOffset.UtcNow));
+        sb.AppendLine(SieveProviderMetadata.RenderFlag(rule));
         sb.AppendLine($"if {test.Test}");
         sb.AppendLine("{");
         foreach (SieveAction action in actions)
@@ -159,7 +159,7 @@ public sealed class SieveGenerator : ISieveGenerator
                 ["mime"]);
         }
 
-        var values = condition.GetValues()
+        var values = condition.Values
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => value.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -210,7 +210,7 @@ public sealed class SieveGenerator : ISieveGenerator
 
     private static IEnumerable<SieveAction> RenderAction(RuleAction action)
     {
-        string[] values = action.GetValues()
+        string[] values = action.Values
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => value.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)

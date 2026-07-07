@@ -12,6 +12,7 @@ Per-rule source overrides support reconciled documents containing multiple sourc
 Ownership is either `Managed` or `External`.
 Rules support `conditions`, `exceptions`, explicit `actions`, and the simple `targetFolder` shortcut.
 `targetFolder` is still treated as a simple `FileInto` action when `actions` is empty.
+Conditions and actions carry their operands in `values` arrays.
 
 The source passed to reconciliation is authoritative.
 Managed rules from that source become obsolete when they disappear from the document.

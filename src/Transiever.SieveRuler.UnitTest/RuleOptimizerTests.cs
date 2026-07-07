@@ -24,7 +24,7 @@ public sealed class RuleOptimizerTests
         Assert.Equal(2, result.OriginalRuleCount);
         Assert.Equal(
             ["first@example.com", "second@example.com"],
-            condition.GetValues());
+            condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "MergedEquivalentRules");
@@ -57,18 +57,18 @@ public sealed class RuleOptimizerTests
 
         Assert.Equal(
             ["first@example.com", "second@example.com"],
-            condition.GetValues());
+            condition.Values);
         Assert.Collection(
             optimizedRule.Actions,
             action =>
             {
                 Assert.Equal(RuleActionType.SetFlags, action.Type);
-                Assert.Equal(["\\Seen"], action.GetValues());
+                Assert.Equal(["\\Seen"], action.Values);
             },
             action =>
             {
                 Assert.Equal(RuleActionType.FileInto, action.Type);
-                Assert.Equal(["Inbox/Development"], action.GetValues());
+                Assert.Equal(["Inbox/Development"], action.Values);
             },
             action => Assert.Equal(RuleActionType.Stop, action.Type));
     }
@@ -95,10 +95,10 @@ public sealed class RuleOptimizerTests
 
         Assert.Equal(
             ["first@example.com", "second@example.com"],
-            condition.GetValues());
+            condition.Values);
         RuleAction action = Assert.Single(optimizedRule.Actions);
         Assert.Equal(RuleActionType.FileInto, action.Type);
-        Assert.Equal(["Inbox/Development"], action.GetValues());
+        Assert.Equal(["Inbox/Development"], action.Values);
     }
 
     [Fact]
@@ -154,12 +154,12 @@ public sealed class RuleOptimizerTests
             condition =>
             {
                 Assert.Equal(RuleConditionType.SenderContains, condition.Type);
-                Assert.Equal(["sender@example.com"], condition.GetValues());
+                Assert.Equal(["sender@example.com"], condition.Values);
             },
             condition =>
             {
                 Assert.Equal(RuleConditionType.SubjectContains, condition.Type);
-                Assert.Equal(["invoice"], condition.GetValues());
+                Assert.Equal(["invoice"], condition.Values);
             });
     }
 
@@ -180,7 +180,7 @@ public sealed class RuleOptimizerTests
         RuleCondition condition = Assert.Single(optimizedRule.Conditions);
 
         Assert.Equal(RuleConditionType.HasAttachment, condition.Type);
-        Assert.Empty(condition.GetValues());
+        Assert.Empty(condition.Values);
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public sealed class RuleOptimizerTests
 
         Assert.Equal(
             ["first@example.com", "second@example.com", "third@example.com"],
-            condition.GetValues());
+            condition.Values);
     }
 
     [Fact]
@@ -306,7 +306,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["@example.com"], condition.GetValues());
+        Assert.Equal(["@example.com"], condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "InferredSenderDomain"
@@ -336,7 +336,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["@example.com"], condition.GetValues());
+        Assert.Equal(["@example.com"], condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "InferredSenderDomain"
@@ -360,7 +360,7 @@ public sealed class RuleOptimizerTests
 
         Assert.Equal(
             ["first@example.com", "second@example.com"],
-            condition.GetValues());
+            condition.Values);
         Assert.DoesNotContain(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "InferredSenderDomain");
@@ -380,7 +380,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["newsletter@example.com"], condition.GetValues());
+        Assert.Equal(["newsletter@example.com"], condition.Values);
     }
 
     [Fact]
@@ -398,7 +398,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["@example.com"], condition.GetValues());
+        Assert.Equal(["@example.com"], condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "InferredSenderDomain"
@@ -433,7 +433,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["@example.com"], condition.GetValues());
+        Assert.Equal(["@example.com"], condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "InferredRoleSenderDomain"
@@ -461,7 +461,7 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["example.com"], condition.GetValues());
+        Assert.Equal(["example.com"], condition.Values);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "CollapsedSenderSubdomains"
@@ -483,9 +483,9 @@ public sealed class RuleOptimizerTests
 
         RuleCondition condition = Assert.Single(Assert.Single(result.Rules).Conditions);
 
-        Assert.Equal(["xyz.de"], condition.GetValues());
+        Assert.Equal(["xyz.de"], condition.Values);
         Assert.DoesNotContain(
-            condition.GetValues(),
+            condition.Values,
             value => value.Contains("info.xyz.de", StringComparison.OrdinalIgnoreCase));
         Assert.Collection(
             result.Diagnostics,
@@ -512,7 +512,7 @@ public sealed class RuleOptimizerTests
 
         Assert.Equal(
             ["person@first.co.uk", "person@second.co.uk"],
-            condition.GetValues());
+            condition.Values);
         Assert.DoesNotContain(
             result.Diagnostics,
             diagnostic => diagnostic.Action == "CollapsedSenderSubdomains");

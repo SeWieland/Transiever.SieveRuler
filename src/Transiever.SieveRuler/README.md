@@ -4,7 +4,7 @@ The library exposes:
 
 * `RuleDocument` and `RuleDefinition` as the JSON API.
 * Schema v1 conditions, exceptions, explicit actions, and the simple `targetFolder` shortcut.
-* `JsonRuleSerializer` with file and stream APIs.
+* `JsonRuleSerializer` with `RuleDocument` file and stream APIs.
 * Action-aware rule optimization and Sieve generation.
 * Strict Sieve import, byte-preserving composition, and source-aware reconciliation.
 * Typed preview, deployment, rollback, and history workflows over `Transiever.ManageSieve`.

@@ -2,6 +2,7 @@ using Transiever.SieveRuler.Models;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Services;
 
@@ -38,10 +39,10 @@ public sealed class SieveScriptComposer(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters =
         {
-            new StringEnumJsonConverter<RuleConditionMode>(),
-            new StringEnumJsonConverter<RuleConditionType>(),
-            new StringEnumJsonConverter<RuleActionType>(),
-            new StringEnumJsonConverter<RuleOwnership>()
+            new JsonStringEnumConverter<RuleConditionMode>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleConditionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleActionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
 

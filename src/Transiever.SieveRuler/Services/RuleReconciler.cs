@@ -182,14 +182,14 @@ public sealed class RuleReconciler(IRuleOptimizer optimizer) : IRuleReconciler
         new()
         {
             Type = action.Type,
-            Values = [.. action.GetValues()]
+            Values = [.. action.Values]
         };
 
     private static RuleCondition CloneCondition(RuleCondition condition) =>
         new()
         {
             Type = condition.Type,
-            Values = [.. condition.GetValues()]
+            Values = [.. condition.Values]
         };
 
     private static ReconciliationDiagnostic Diagnostic(

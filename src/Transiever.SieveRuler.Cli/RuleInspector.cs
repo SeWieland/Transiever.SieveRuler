@@ -94,7 +94,7 @@ public static class RuleInspector
 
         foreach (RuleAction action in actions)
         {
-            string[] values = action.GetValues()
+            string[] values = action.Values
                 .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToArray();
 
@@ -122,7 +122,7 @@ public static class RuleInspector
 
         foreach (RuleCondition condition in conditions)
         {
-            string[] values = condition.GetValues()
+            string[] values = condition.Values
                 .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToArray();
 
@@ -160,7 +160,7 @@ public static class RuleInspector
             {
                 warnings.Add($"{prefix}: no conditions.");
             }
-            else if (rule.Conditions.All(condition => condition.GetValues().Count == 0))
+            else if (rule.Conditions.All(condition => condition.Values.Count == 0))
             {
                 warnings.Add($"{prefix}: all conditions are empty.");
             }
@@ -193,7 +193,7 @@ public static class RuleInspector
         {
             if (action.Type is RuleActionType.FileInto or RuleActionType.CopyInto)
             {
-                foreach (string value in action.GetValues())
+                foreach (string value in action.Values)
                     yield return value;
             }
         }

@@ -2,6 +2,7 @@ using Transiever.SieveRuler.Models;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Transiever.SieveRuler.Services;
 
@@ -28,10 +29,10 @@ public sealed class SieveImporter : ISieveImporter
         PropertyNameCaseInsensitive = true,
         Converters =
         {
-            new StringEnumJsonConverter<RuleConditionMode>(),
-            new StringEnumJsonConverter<RuleConditionType>(),
-            new StringEnumJsonConverter<RuleActionType>(),
-            new StringEnumJsonConverter<RuleOwnership>()
+            new JsonStringEnumConverter<RuleConditionMode>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleConditionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleActionType>(allowIntegerValues: false),
+            new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
 
@@ -589,8 +590,8 @@ internal sealed class StrictSieveParser(string text)
             .ToList();
         if (subject.Count != 1 ||
             body.Count != 1 ||
-            !subject[0].GetValues().SequenceEqual(
-                body[0].GetValues(),
+            !subject[0].Values.SequenceEqual(
+                body[0].Values,
                 StringComparer.OrdinalIgnoreCase))
         {
             throw new SieveParseException();
@@ -602,7 +603,7 @@ internal sealed class StrictSieveParser(string text)
                 new RuleCondition
                 {
                     Type = RuleConditionType.SubjectOrBodyContains,
-                    Values = [.. subject[0].GetValues()]
+                    Values = [.. subject[0].Values]
                 }
             ],
             new HashSet<string>(["body"], StringComparer.OrdinalIgnoreCase));
@@ -986,10 +987,10 @@ internal static class RuleFingerprint
     }
 
     private static string CanonicalCondition(RuleCondition condition) =>
-        $"{condition.Type}:{CanonicalValues(condition.GetValues())}";
+        $"{condition.Type}:{CanonicalValues(condition.Values)}";
 
     private static string CanonicalAction(RuleAction action) =>
-        $"{action.Type}:{CanonicalValues(action.GetValues())}";
+        $"{action.Type}:{CanonicalValues(action.Values)}";
 
     private static string CanonicalValues(IEnumerable<string> values) =>
         string.Join(

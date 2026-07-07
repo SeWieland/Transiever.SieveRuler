@@ -5,7 +5,7 @@
 Initial development version:
 
 * Schema-versioned provider-neutral JSON rule contract.
-* Explicit v1 rule actions and exceptions with the simple `targetFolder` shortcut.
+* Explicit v1 rule actions and exceptions with `values` arrays and the simple `targetFolder` shortcut.
 * Conservative, balanced, and aggressive action-aware optimization.
 * Sieve generation, strict compatible import, and opaque preservation.
 * Open-Xchange-compatible provider UI metadata comments on generated managed Sieve rules.
