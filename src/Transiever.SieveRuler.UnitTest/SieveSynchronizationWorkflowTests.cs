@@ -149,6 +149,48 @@ public sealed class SieveSynchronizationWorkflowTests
     }
 
     [Fact]
+    public async Task Preview_CanReturnPlanWithoutWritingArtifacts()
+    {
+        string directory = CreateDirectory();
+
+        try
+        {
+            CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+            string rulesFile = Path.Combine(directory, "rules.json");
+            string planFile = Path.Combine(directory, "plan.json");
+
+            PreviewSynchronizationResult result = await CreateWorkflow(FakeConnection.Empty())
+                .PreviewAsync(
+                    new PreviewSynchronizationRequest(
+                        TestConfiguration(),
+                        rulesFile,
+                        Path.Combine(directory, "reconciled-rules.json"),
+                        Path.Combine(directory, "candidate-rules.json"),
+                        Path.Combine(directory, "server.sieve"),
+                        Path.Combine(directory, "candidate.sieve"),
+                        planFile,
+                        AdoptCompatible: false,
+                        SourceDocument: new RuleDocument
+                        {
+                            SourceId = "outlook",
+                            Rules = [CreateSenderRule("First", "first@example.com")]
+                        },
+                        WriteArtifacts: false),
+                    cancellationToken);
+
+            Assert.Equal(PreviewSynchronizationStatus.Prepared, result.Status);
+            Assert.False(result.FilesWritten);
+            Assert.NotNull(result.Plan);
+            Assert.False(File.Exists(rulesFile));
+            Assert.False(File.Exists(planFile));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task Preview_AcceptsCapabilitiesDeclaredByActiveScript()
     {
         string directory = CreateDirectory();
@@ -674,6 +716,30 @@ public sealed class SieveSynchronizationWorkflowTests
     }
 
     [Fact]
+    public async Task HistoryRestore_LatestRestoresNewestInactiveBackup()
+    {
+        byte[] current = "keep;\r\n"u8.ToArray();
+        byte[] older = "discard;\r\n"u8.ToArray();
+        byte[] newer = "require [\"fileinto\"];\r\nfileinto \"INBOX/Previous\";\r\n"u8.ToArray();
+        FakeConnection connection = FakeConnection.WithScripts(
+            "Open-Xchange",
+            ("Open-Xchange", current),
+            ("srtx-backup-20240101000000-older", older),
+            ("srtx-20240201000000-candidate", "stop;\r\n"u8.ToArray()),
+            ("srtx-backup-20240301000000-newer", newer));
+
+        HistoryRestoreResult result = await CreateWorkflow(connection)
+            .RestoreHistoryAsync(
+                new HistoryRestoreRequest(TestConfiguration(), "latest"),
+                TestContext.Current.CancellationToken);
+
+        Assert.Equal(HistoryRestoreStatus.RestoredScript, result.Status);
+        Assert.Equal("srtx-backup-20240301000000-newer", result.SourceScriptName);
+        Assert.Equal(newer, connection.GetContent("Open-Xchange"));
+        Assert.Equal(current, connection.GetContent(result.BackupScriptName!));
+    }
+
+    [Fact]
     public async Task HistoryRestore_OriginalNoActiveMarkerDisablesActiveAndBacksUpCurrent()
     {
         byte[] current = "keep;\r\n"u8.ToArray();
@@ -734,6 +800,28 @@ public sealed class SieveSynchronizationWorkflowTests
 
         Assert.Contains("active", exception.Message, StringComparison.OrdinalIgnoreCase);
         Assert.True(connection.ContainsScript("srtx-20240101000000-active"));
+        Assert.Empty(connection.DeletedScripts);
+    }
+
+    [Fact]
+    public async Task HistoryDelete_DoesNotResolveLatestShortcut()
+    {
+        byte[] current = "keep;\r\n"u8.ToArray();
+        FakeConnection connection = FakeConnection.WithScripts(
+            "Open-Xchange",
+            ("Open-Xchange", current),
+            ("srtx-backup-20240101000000-original", current));
+
+        InvalidOperationException exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => CreateWorkflow(connection).DeleteHistoryAsync(
+                    new HistoryDeleteRequest(
+                        TestConfiguration(),
+                        "latest"),
+                    TestContext.Current.CancellationToken));
+
+        Assert.Contains("latest", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(connection.ContainsScript("srtx-backup-20240101000000-original"));
         Assert.Empty(connection.DeletedScripts);
     }
 

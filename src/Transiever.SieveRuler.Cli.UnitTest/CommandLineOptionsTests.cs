@@ -137,6 +137,17 @@ public sealed class CommandLineOptionsTests
     }
 
     [Fact]
+    public void Parse_HistoryRestoreReadsLatest()
+    {
+        CommandLineOptions options = CommandLineOptions.Parse(
+            ["history", "restore", "latest"]);
+
+        Assert.Equal(SieveRulerCommand.History, options.Command);
+        Assert.Equal(SieveRulerHistoryAction.Restore, options.HistoryAction);
+        Assert.Equal("latest", options.HistoryScriptName);
+    }
+
+    [Fact]
     public void Parse_HistoryDeleteReadsScriptAndDryRun()
     {
         CommandLineOptions options = CommandLineOptions.Parse(

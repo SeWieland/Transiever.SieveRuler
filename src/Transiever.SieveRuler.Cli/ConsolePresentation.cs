@@ -15,7 +15,7 @@ public static class ConsolePresentation
         Console.WriteLine("  srtx rollback [--plan deployment-plan.json] [--force]");
         Console.WriteLine("  srtx history list");
         Console.WriteLine("  srtx history show <script-name> [--sieve restored.sieve]");
-        Console.WriteLine("  srtx history restore <script-name|original> [--dry-run] [--force]");
+        Console.WriteLine("  srtx history restore <script-name|latest|original> [--dry-run] [--force]");
         Console.WriteLine("  srtx history delete <script-name|original> [--dry-run]");
         Console.WriteLine("  srtx history prune [--dry-run]");
         Console.WriteLine();
@@ -25,7 +25,7 @@ public static class ConsolePresentation
         Console.WriteLine("Generated managed rules include provider UI metadata comments for Open-Xchange-compatible rule editors.");
         Console.WriteLine("Preview preserves the current active script name by default; deploy activates the previewed candidate after creating any required server-side backup.");
         Console.WriteLine("Deploy prunes inactive SieveRuler history automatically, keeping the oldest backup plus the newest retained history scripts.");
-        Console.WriteLine("History restore creates a fresh backup before restoring a retained SieveRuler version or the original state.");
+        Console.WriteLine("History restore creates a fresh backup before restoring a retained SieveRuler version, latest backup, or original state.");
         Console.WriteLine("History delete and prune remove inactive SieveRuler-owned history; prune keeps the active script and non-SieveRuler scripts.");
         Console.WriteLine("Review artifacts: --reconciled-rules, --candidate-rules, --candidate, --server-snapshot, --plan.");
     }

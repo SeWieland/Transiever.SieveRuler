@@ -18,6 +18,7 @@ srtx deploy --plan deployment-plan.json --no-prune-history
 srtx rollback --plan deployment-plan.json
 srtx history list
 srtx history show srtx-backup-20260626121421-example --sieve restored.sieve
+srtx history restore latest
 srtx history restore original
 srtx history delete srtx-20260626121421-example
 srtx history prune --dry-run
@@ -85,7 +86,9 @@ History commands work directly from retained SieveRuler-owned server scripts.
 
 `history list` shows `srtx-backup-*` backups and `srtx-*` candidates, marking the oldest backup or no-active marker as `original`.
 `history show <name>` prints the retained script or writes it with `--sieve`.
-`history restore <name>` or `history restore original` creates a fresh backup of the current active state before restoring.
+`history restore <name>`, `history restore latest`, or `history restore original`
+creates a fresh backup of the current active state before restoring.
+`latest` resolves to the newest inactive `srtx-backup-*` script.
 If `original` is a `srtx-backup-*-no-active` marker, it disables active Sieve processing.
 `history delete <name>` removes one inactive SieveRuler-owned history script and refuses to delete the active script.
 `history prune` deletes all inactive SieveRuler-owned history scripts, including the original backup or no-active marker.
@@ -102,7 +105,8 @@ TRANSIEVER_SIEVE_PASSWORD=secret
 TRANSIEVER_SIEVE_SECURITY_MODE=StartTlsRequired
 ```
 
-Use `--sieve-host`, `--sieve-port`, `--sieve-username`, `--sieve-password`, and `--sieve-security-mode` to override those values for a targeted command.
+Use `--sieve-host`, `--sieve-port`, `--sieve-username`, `--sieve-password`,
+and `--sieve-security-mode` to override those values for a targeted command.
 The port and security mode are optional.
 `ImplicitTls` is supported.
 Plaintext authentication is refused.

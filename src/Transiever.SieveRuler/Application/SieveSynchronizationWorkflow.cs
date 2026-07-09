@@ -190,7 +190,8 @@ public sealed class SieveSynchronizationWorkflow(
                 : remote.ActiveContentSha256
         };
 
-        if (!request.DryRun)
+        bool writeArtifacts = request.WriteArtifacts && !request.DryRun;
+        if (writeArtifacts)
         {
             await serializer.SaveDocumentAsync(
                 reconciledDocument,
@@ -221,7 +222,8 @@ public sealed class SieveSynchronizationWorkflow(
             ManagedRuleCount = reconciliation.RenderedRules.Count,
             TargetScriptName = targetName,
             ReplacesActiveScript = replacesActive,
-            FilesWritten = !request.DryRun
+            FilesWritten = writeArtifacts,
+            Plan = plan
         };
     }
 
@@ -231,7 +233,8 @@ public sealed class SieveSynchronizationWorkflow(
     {
         ArgumentOutOfRangeException.ThrowIfNegative(request.HistoryLimit);
 
-        DeploymentPlan plan = await LoadPlanAsync(request.PlanFile, cancellationToken);
+        DeploymentPlan plan = request.Plan ??
+            await LoadPlanAsync(request.PlanFile, cancellationToken);
         byte[] candidate = ValidateCandidate(plan);
         string targetName = GetTargetScriptName(plan);
 
@@ -388,7 +391,10 @@ public sealed class SieveSynchronizationWorkflow(
             RemoteSieveState dryRunState =
                 await dryRunConnection.ReadStateAsync(cancellationToken);
             HistoryScript dryRunHistory =
-                ResolveHistoryScript(dryRunState, request.ScriptName);
+                ResolveHistoryScript(
+                    dryRunState,
+                    request.ScriptName,
+                    allowLatest: true);
             return new HistoryRestoreResult
             {
                 Status = HistoryRestoreStatus.PlanValidated,
@@ -410,7 +416,10 @@ public sealed class SieveSynchronizationWorkflow(
                 request.Configuration,
                 cancellationToken);
         RemoteSieveState state = await connection.ReadStateAsync(cancellationToken);
-        HistoryScript history = ResolveHistoryScript(state, request.ScriptName);
+        HistoryScript history = ResolveHistoryScript(
+            state,
+            request.ScriptName,
+            allowLatest: true);
         if (history.Kind == SieveHistoryEntryKind.NoActiveOriginalMarker)
         {
             return await RestoreNoActiveOriginalAsync(
@@ -1115,9 +1124,26 @@ public sealed class SieveSynchronizationWorkflow(
 
     private static HistoryScript ResolveHistoryScript(
         RemoteSieveState state,
-        string requestedName)
+        string requestedName,
+        bool allowLatest = false)
     {
         List<HistoryScript> histories = GetHistoryScripts(state);
+        if (allowLatest &&
+            requestedName.Equals("latest", StringComparison.OrdinalIgnoreCase))
+        {
+            return histories
+                .Where(script =>
+                    !script.IsActive &&
+                    script.Kind is
+                        SieveHistoryEntryKind.Backup or
+                        SieveHistoryEntryKind.NoActiveOriginalMarker)
+                .OrderByDescending(script => script.CreatedUtc)
+                .ThenByDescending(script => script.Name, StringComparer.Ordinal)
+                .FirstOrDefault() ??
+                throw new InvalidOperationException(
+                    "No inactive SieveRuler backup exists on the server.");
+        }
+
         if (requestedName.Equals("original", StringComparison.OrdinalIgnoreCase))
         {
             return FindOriginalHistory(histories) ??

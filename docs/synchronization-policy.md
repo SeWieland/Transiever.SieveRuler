@@ -63,6 +63,7 @@ History operations list and show retained SieveRuler-owned backup and candidate 
 
 Restoring a history entry first creates a fresh backup of the current active script,
 then writes the selected content into the current active script name.
+The special history name `latest` resolves to the newest inactive `srtx-backup-*` entry.
 
 Restoring the original no-active marker disables active Sieve processing after backing up the current active script.
 

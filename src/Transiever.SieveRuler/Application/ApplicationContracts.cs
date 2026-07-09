@@ -42,7 +42,8 @@ public sealed record PreviewSynchronizationRequest(
     RuleOptimizationMode? OptimizationMode = null,
     bool DryRun = false,
     RuleDocument? SourceDocument = null,
-    string? TargetScriptName = null);
+    string? TargetScriptName = null,
+    bool WriteArtifacts = true);
 
 /// <summary>
 /// Requests deployment of a previously prepared plan.
@@ -52,7 +53,8 @@ public sealed record DeploySynchronizationRequest(
     string PlanFile,
     bool DryRun = false,
     int HistoryLimit = 5,
-    bool PruneHistory = true);
+    bool PruneHistory = true,
+    DeploymentPlan? Plan = null);
 
 /// <summary>
 /// Requests rollback of a previously prepared plan.
@@ -151,6 +153,8 @@ public sealed record PreviewSynchronizationResult
     public bool ReplacesActiveScript { get; init; }
 
     public bool FilesWritten { get; init; }
+
+    public DeploymentPlan? Plan { get; init; }
 }
 
 /// <summary>
