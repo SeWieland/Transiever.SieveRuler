@@ -18,6 +18,12 @@ scoop bucket add transiever https://github.com/SeWieland/Transiever.ScoopBucket
 scoop install transiever/srtx
 ```
 
+Install the self-contained Linux x64 build with Homebrew:
+
+```bash
+brew install SeWieland/transiever/srtx
+```
+
 ## Documentation Map
 
 Start here, then follow the component-specific guides:
