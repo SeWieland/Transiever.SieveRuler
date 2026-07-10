@@ -9,6 +9,15 @@ It is also intended for future Thunderbird or other provider-specific importers.
 The rule model and generated Sieve are provider-agnostic in intent.
 Provider UI metadata has only been tested and validated against [mailbox.org] and the [Open-Xchange] implementation it uses.
 
+## Install
+
+Install the self-contained Windows build with Scoop:
+
+```powershell
+scoop bucket add transiever https://github.com/SeWieland/Transiever.ScoopBucket
+scoop install transiever/srtx
+```
+
 ## Documentation Map
 
 Start here, then follow the component-specific guides:
