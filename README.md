@@ -24,6 +24,14 @@ Install the self-contained Linux x64 build with Homebrew:
 brew install SeWieland/transiever/srtx
 ```
 
+Install as a global .NET tool:
+
+```bash
+dotnet tool install --global Transiever.SieveRuler.Cli
+```
+
+NuGet.org: [Transiever.SieveRuler](https://www.nuget.org/packages/Transiever.SieveRuler) and [Transiever.SieveRuler.Cli](https://www.nuget.org/packages/Transiever.SieveRuler.Cli).
+
 ## Documentation Map
 
 Start here, then follow the component-specific guides:
