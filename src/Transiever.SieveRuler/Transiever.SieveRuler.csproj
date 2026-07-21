@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="!Exists('$(ManageSieveProject)')">
-    <PackageReference Include="Transiever.ManageSieve" Version="1.0.0" />
+    <PackageReference Include="Transiever.ManageSieve" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
