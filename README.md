@@ -76,7 +76,7 @@ Stable releases come from `main`.
 Beta prereleases come from `dev` and may be unstable.
 
 Releases publish the library and `srtx` .NET tool packages to NuGet.org.
-They also attach self-contained `srtx` assets for `win-x64`, `win-x86`, and `linux-x64`.
+They also attach trimmed Native-AOT `srtx` assets for `win-x64`, `win-x86`, and `linux-x64`.
 
 [mailbox.org]: https://mailbox.org/
 [Open-Xchange]: https://www.open-xchange.com/

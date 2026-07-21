@@ -22,6 +22,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
+    private static readonly SieveRulerJsonContext JsonContext = new(Options);
 
     public async Task SaveDocumentAsync(
         RuleDocument document,
@@ -44,7 +45,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
         await JsonSerializer.SerializeAsync(
             destination,
             document,
-            Options,
+            JsonContext.RuleDocument,
             cancellationToken);
     }
 
@@ -114,7 +115,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
                 $"Unsupported rules schema identifier '{schemaElement.GetString()}'.");
         }
 
-        RuleDocument document = json.RootElement.Deserialize<RuleDocument>(Options)
+        RuleDocument document = json.RootElement.Deserialize(JsonContext.RuleDocument)
             ?? throw new InvalidDataException("Rules document was empty.");
         ValidateSourceId(document.SourceId);
         return document;

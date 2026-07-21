@@ -29,8 +29,7 @@ public sealed class SynchronizationIntegrationTests
         await image.CreateAsync(cancellationToken);
         await using (image)
         {
-            IContainer container = new ContainerBuilder()
-                .WithImage(image)
+            IContainer container = new ContainerBuilder(image)
                 .WithPortBinding(4190, true)
                 .WithWaitStrategy(
                     Wait.ForUnixContainer().UntilExternalTcpPortIsAvailable(4190))

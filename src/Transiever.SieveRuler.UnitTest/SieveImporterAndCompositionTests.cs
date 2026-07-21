@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
 
@@ -149,11 +152,38 @@ public sealed class SieveImporterAndCompositionTests
         var composer = new SieveScriptComposer(importer, new SieveGenerator());
 
         SieveCompositionResult composed = composer.Compose(empty, reconciliation);
+        string composedText = Encoding.UTF8.GetString(composed.Content);
+        var reflectionOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters =
+            {
+                new JsonStringEnumConverter<RuleConditionMode>(allowIntegerValues: false),
+                new JsonStringEnumConverter<RuleConditionType>(allowIntegerValues: false),
+                new JsonStringEnumConverter<RuleActionType>(allowIntegerValues: false),
+                new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
+            }
+        };
+        byte[] expectedMetadata = JsonSerializer.SerializeToUtf8Bytes(
+            new List<RuleDefinition> { rule },
+            reflectionOptions);
+        string expectedMetadataText = Convert.ToBase64String(expectedMetadata);
+        string actualMetadataText = string.Concat(
+            composedText.Split("\r\n")
+                .Where(line => line.StartsWith(SieveImporter.MetadataPrefix, StringComparison.Ordinal))
+                .Select(line => line[SieveImporter.MetadataPrefix.Length..]));
+        string expectedMetadataHash = Convert.ToHexString(SHA256.HashData(expectedMetadata));
+
+        Assert.Equal(expectedMetadataText, actualMetadataText);
+        Assert.Contains(
+            $"{SieveImporter.MetadataHashPrefix}{expectedMetadataHash}\r\n",
+            composedText);
+
         SieveImportResult roundTrip = importer.Import(composed.Content);
         Assert.False(roundTrip.ManagedRegionConflict);
         Assert.Equal("server", Assert.Single(roundTrip.ManagedSourceRules).SourceId);
 
-        string changed = Encoding.UTF8.GetString(composed.Content)
+        string changed = composedText
             .Replace("\"invoice\"", "\"changed\"", StringComparison.Ordinal);
         SieveImportResult tampered = importer.Import(Encoding.UTF8.GetBytes(changed));
 
@@ -162,7 +192,7 @@ public sealed class SieveImporterAndCompositionTests
             tampered.Diagnostics,
             diagnostic => diagnostic.Code == "ManagedRegionModified");
 
-        string orphaned = Encoding.UTF8.GetString(composed.Content)
+        string orphaned = composedText
             .Replace(SieveImporter.RulesBegin, "# CHANGED SIEVERULER RULES v1");
         Assert.True(
             importer.Import(Encoding.UTF8.GetBytes(orphaned))

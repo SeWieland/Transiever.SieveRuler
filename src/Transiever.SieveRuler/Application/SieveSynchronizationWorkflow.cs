@@ -70,6 +70,7 @@ public sealed class SieveSynchronizationWorkflow(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
+    private static readonly SieveRulerJsonContext JsonContext = new(PlanOptions);
 
     public async Task<PreviewSynchronizationResult> PreviewAsync(
         PreviewSynchronizationRequest request,
@@ -211,7 +212,7 @@ public sealed class SieveSynchronizationWorkflow(
                 cancellationToken);
             await File.WriteAllTextAsync(
                 request.PlanFile,
-                JsonSerializer.Serialize(plan, PlanOptions),
+                JsonSerializer.Serialize(plan, JsonContext.DeploymentPlan),
                 cancellationToken);
         }
 
@@ -1296,9 +1297,10 @@ public sealed class SieveSynchronizationWorkflow(
         string planFile,
         CancellationToken cancellationToken)
     {
-        DeploymentPlan plan = JsonSerializer.Deserialize<DeploymentPlan>(
+        DeploymentPlan plan = JsonSerializer.Deserialize(
             await File.ReadAllTextAsync(planFile, cancellationToken),
-            PlanOptions) ?? throw new InvalidDataException("Deployment plan was empty.");
+            JsonContext.DeploymentPlan) ??
+            throw new InvalidDataException("Deployment plan was empty.");
         if (plan.SchemaVersion != DeploymentPlan.CurrentSchemaVersion)
         {
             throw new InvalidDataException(

@@ -45,6 +45,7 @@ public sealed class SieveScriptComposer(
             new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
+    private static readonly SieveRulerJsonContext JsonContext = new(MetadataOptions);
 
     public SieveCompositionResult Compose(
         SieveImportResult imported,
@@ -105,8 +106,8 @@ public sealed class SieveScriptComposer(
             .TrimEnd('\r', '\n');
         string metadata = Convert.ToBase64String(
             JsonSerializer.SerializeToUtf8Bytes(
-                reconciliation.OwnedSourceRules,
-                MetadataOptions));
+                reconciliation.OwnedSourceRules.ToList(),
+                JsonContext.ListRuleDefinition));
         string metadataHash = Convert.ToHexString(
             SHA256.HashData(Convert.FromBase64String(metadata)));
         string bodyHash = Convert.ToHexString(

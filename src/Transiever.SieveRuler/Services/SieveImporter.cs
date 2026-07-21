@@ -35,6 +35,7 @@ public sealed class SieveImporter : ISieveImporter
             new JsonStringEnumConverter<RuleOwnership>(allowIntegerValues: false)
         }
     };
+    private static readonly SieveRulerJsonContext JsonContext = new(MetadataOptions);
 
     public SieveImportResult Import(ReadOnlyMemory<byte> content)
     {
@@ -157,9 +158,9 @@ public sealed class SieveImporter : ISieveImporter
                 byte[] metadataBytes = Convert.FromBase64String(metadataText!);
                 string actualMetadataHash = Convert.ToHexString(
                     SHA256.HashData(metadataBytes));
-                rules = JsonSerializer.Deserialize<List<RuleDefinition>>(
+                rules = JsonSerializer.Deserialize(
                     metadataBytes,
-                    MetadataOptions) ?? [];
+                    JsonContext.ListRuleDefinition) ?? [];
                 string actualHash = Convert.ToHexString(
                     SHA256.HashData(Encoding.UTF8.GetBytes(body)));
                 conflict =

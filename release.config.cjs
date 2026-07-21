@@ -16,7 +16,20 @@ module.exports = {
     ],
     [
       "@semantic-release/release-notes-generator",
-      { preset: "conventionalcommits" }
+      {
+        preset: "conventionalcommits",
+        presetConfig: {
+          types: [
+            { type: "feat", section: "Features" },
+            { type: "feature", section: "Features" },
+            { type: "fix", section: "Bug Fixes" },
+            { type: "perf", section: "Performance Improvements" },
+            { type: "revert", section: "Reverts" },
+            { type: "chore", scope: "deps", section: "Dependency Updates" },
+            { type: "chore", scope: "deps-dev", section: "Dependency Updates" }
+          ]
+        }
+      }
     ],
     [
       "@droidsolutions-oss/semantic-release-nuget",
@@ -36,30 +49,10 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        prepareCmd: "bash .github/scripts/build-release-assets.sh ${nextRelease.version}"
+        prepareCmd: "dotnet pack src/Transiever.SieveRuler.Cli/Transiever.SieveRuler.Cli.csproj --configuration Release -p:PackageVersion=${nextRelease.version} --output out",
+        successCmd: "if [ -n \"$GITHUB_OUTPUT\" ]; then echo \"release_tag=${nextRelease.gitTag}\" >> \"$GITHUB_OUTPUT\"; fi"
       }
     ],
-    [
-      "@semantic-release/github",
-      {
-        assets: [
-          {
-            path: "artifacts/srtx-win-x64.zip",
-            name: "srtx-${nextRelease.gitTag}-win-x64.zip",
-            label: "srtx Windows x64"
-          },
-          {
-            path: "artifacts/srtx-win-x86.zip",
-            name: "srtx-${nextRelease.gitTag}-win-x86.zip",
-            label: "srtx Windows x86"
-          },
-          {
-            path: "artifacts/srtx-linux-x64.tar.gz",
-            name: "srtx-${nextRelease.gitTag}-linux-x64.tar.gz",
-            label: "srtx Linux x64"
-          }
-        ]
-      }
-    ]
+    ["@semantic-release/github", { draftRelease: true }]
   ]
 };
