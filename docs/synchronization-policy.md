@@ -4,7 +4,7 @@ This document is the canonical description of preview, deployment, rollback, and
 
 The system boundary lives in [architecture](architecture.md).
 Rules contract and generated provider metadata live in [rules-and-metadata](rules-and-metadata.md).
-The operator-facing command surface lives in [../src/Transiever.SieveRuler.Cli/README.md](../src/Transiever.SieveRuler.Cli/README.md).
+The operator-facing command surface lives in the [SieveRuler CLI guide](../src/Transiever.SieveRuler.Cli/README.md).
 
 ## Preview
 

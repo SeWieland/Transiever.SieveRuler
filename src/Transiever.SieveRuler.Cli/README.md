@@ -1,9 +1,7 @@
 # `srtx`
 
 This guide is the canonical command reference for the SieveRuler CLI.
-Repository overview lives in [../../README.md](../../README.md).
-Deployment-policy detail lives in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md).
-Generated metadata constraints live in [../../docs/rules-and-metadata.md](../../docs/rules-and-metadata.md).
+See the [SieveRuler project overview](https://github.com/SeWieland/Transiever.SieveRuler#readme), [synchronization policy](https://github.com/SeWieland/Transiever.SieveRuler/blob/main/docs/synchronization-policy.md), and [rules and metadata guide](https://github.com/SeWieland/Transiever.SieveRuler/blob/main/docs/rules-and-metadata.md).
 
 ## Install
 
@@ -72,7 +70,7 @@ Generated managed rules include provider UI metadata comments in the Open-Xchang
 The CLI remains provider-agnostic in intent.
 However, this metadata shape is currently validated against mailbox.org's Open-Xchange implementation.
 
-Canonical workflow and policy details live in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md).
+Canonical workflow and policy details live in the [synchronization policy](https://github.com/SeWieland/Transiever.SieveRuler/blob/main/docs/synchronization-policy.md).
 This file keeps the command-facing behavior and operator guidance.
 
 Deployment validates the exact previewed candidate and active-script snapshot.

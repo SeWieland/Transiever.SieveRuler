@@ -30,8 +30,8 @@ Malformed inputs, stale state, I/O, and protocol failures throw.
 ## Policy Notes
 
 The library owns the provider-neutral workflow behavior behind preview, deployment, rollback, and retained-history operations.
-The canonical workflow description lives in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md).
-Rules contract and provider metadata details live in [../../docs/rules-and-metadata.md](../../docs/rules-and-metadata.md).
+The canonical workflow description lives in the [synchronization policy](https://github.com/SeWieland/Transiever.SieveRuler/blob/main/docs/synchronization-policy.md).
+Rules contract and provider metadata details live in the [rules and metadata guide](https://github.com/SeWieland/Transiever.SieveRuler/blob/main/docs/rules-and-metadata.md).
 
 In short:
 
