@@ -5,6 +5,15 @@ Repository overview lives in [../../README.md](../../README.md).
 Deployment-policy detail lives in [../../docs/synchronization-policy.md](../../docs/synchronization-policy.md).
 Generated metadata constraints live in [../../docs/rules-and-metadata.md](../../docs/rules-and-metadata.md).
 
+## Install
+
+```bash
+dotnet tool install --global Transiever.SieveRuler.Cli
+```
+
+The global-tool package is available on [NuGet.org](https://www.nuget.org/packages/Transiever.SieveRuler.Cli).
+For a workflow overview and local Sieve export path, see [Generate and deploy Sieve rules from JSON in .NET](https://sewieland.github.io/transiever/dotnet-sieve-rules/).
+
 Commands:
 
 ```bash

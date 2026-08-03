@@ -9,6 +9,15 @@ The library exposes:
 * Strict Sieve import, byte-preserving composition, and source-aware reconciliation.
 * Typed preview, deployment, rollback, and history workflows over `Transiever.ManageSieve`.
 
+## Install
+
+```bash
+dotnet add package Transiever.SieveRuler
+```
+
+The package is available on [NuGet.org](https://www.nuget.org/packages/Transiever.SieveRuler).
+For a tool-selection guide and local/export workflow, see [Generate and deploy Sieve rules from JSON in .NET](https://sewieland.github.io/transiever/dotnet-sieve-rules/).
+
 The package includes the v1 JSON schema.
 All asynchronous I/O accepts `CancellationToken`.
 
