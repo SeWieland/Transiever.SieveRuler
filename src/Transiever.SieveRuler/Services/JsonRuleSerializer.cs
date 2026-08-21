@@ -12,6 +12,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
     internal static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
+        NewLine = "\n",
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters =
@@ -47,6 +48,7 @@ public sealed class JsonRuleSerializer : IRuleSerializer
             document,
             JsonContext.RuleDocument,
             cancellationToken);
+        await destination.WriteAsync("\n"u8.ToArray(), cancellationToken);
     }
 
     public async Task<RuleDocument> LoadDocumentAsync(

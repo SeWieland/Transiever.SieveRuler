@@ -14,6 +14,10 @@ Rules support `conditions`, `exceptions`, explicit `actions`, and the simple `ta
 `targetFolder` is still treated as a simple `FileInto` action when `actions` is empty.
 Conditions and actions carry their operands in `values` arrays.
 
+`JsonRuleSerializer` writes indented UTF-8 without a byte-order mark.
+A new file or an empty stream positioned at zero uses LF line endings and ends with exactly one LF after the final JSON delimiter.
+The stream overload does not truncate or close a caller-owned stream.
+
 The source passed to reconciliation is authoritative.
 Managed rules from that source become obsolete when they disappear from the document.
 Managed rules from every other source remain untouched.
