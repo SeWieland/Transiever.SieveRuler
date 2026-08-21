@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Transiever.SieveRuler.Models;
 using Transiever.SieveRuler.Services;
@@ -6,6 +7,68 @@ namespace Transiever.SieveRuler.UnitTest;
 
 public sealed class JsonRuleSerializerTests
 {
+    [Fact]
+    public async Task Serializer_WritesCanonicalBytesToFileAndEmptyStream()
+    {
+        string file = Path.Combine(
+            Path.GetTempPath(),
+            $"SieveRuler-{Guid.NewGuid():N}.json");
+        try
+        {
+            var serializer = new JsonRuleSerializer();
+            var document = new RuleDocument { SourceId = "outlook" };
+            string expectedText =
+                """
+                {
+                  "$schema": "urn:sieveruler:rules:v1",
+                  "schemaVersion": 1,
+                  "sourceId": "outlook",
+                  "rules": [],
+                  "diagnostics": []
+                }
+                """.ReplaceLineEndings("\n") + "\n";
+            byte[] expected = Encoding.UTF8.GetBytes(expectedText);
+            await using var stream = new MemoryStream();
+
+            await serializer.SaveDocumentAsync(
+                document,
+                stream,
+                TestContext.Current.CancellationToken);
+            await serializer.SaveDocumentAsync(
+                document,
+                file,
+                TestContext.Current.CancellationToken);
+
+            byte[] streamBytes = stream.ToArray();
+            byte[] fileBytes = await File.ReadAllBytesAsync(
+                file,
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(expected, streamBytes);
+            Assert.Equal(expected, fileBytes);
+            Assert.Equal((long)expected.Length, stream.Position);
+            Assert.Equal((long)expected.Length, stream.Length);
+            Assert.Equal((byte)'{', streamBytes[0]);
+            Assert.Equal((byte)'\n', streamBytes[^1]);
+            Assert.NotEqual((byte)'\n', streamBytes[^2]);
+
+            await using var reload = new MemoryStream(streamBytes);
+            RuleDocument loaded = await serializer.LoadDocumentAsync(
+                reload,
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(document.Schema, loaded.Schema);
+            Assert.Equal(document.SchemaVersion, loaded.SchemaVersion);
+            Assert.Equal(document.SourceId, loaded.SourceId);
+            Assert.Empty(loaded.Rules);
+            Assert.Empty(loaded.Diagnostics);
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
     [Fact]
     public async Task Serializer_ReadsAndWritesVersionOneDocument()
     {
