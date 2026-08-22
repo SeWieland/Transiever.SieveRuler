@@ -49,6 +49,7 @@ public sealed class BaselineSieveGoldenTests
         Assert.DoesNotContain((byte)'\r', actual);
         Assert.DoesNotContain(new byte[] { 0xEF, 0xBB, 0xBF }, actual);
         Assert.Equal((byte)'\n', actual[^1]);
+        Assert.NotEqual((byte)'\n', actual[^2]);
 
         Assert.Contains("require [\"body\", \"copy\", \"fileinto\", \"imap4flags\", \"mime\"];", actualText);
         Assert.Contains("header :contains \"Subject\"", actualText);

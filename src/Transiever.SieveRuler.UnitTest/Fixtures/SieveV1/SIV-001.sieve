@@ -13,4 +13,3 @@ fileinto :copy "Archive/Projects" ;
 redirect "archive@example.test" ;
 stop ;
 }
-

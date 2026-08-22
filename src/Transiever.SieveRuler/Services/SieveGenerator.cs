@@ -32,7 +32,7 @@ public sealed class SieveGenerator : ISieveGenerator
 
         sb.Append(body);
 
-        return sb.ToString();
+        return sb.ToString().TrimEnd('\n') + "\n";
     }
 
     public string GenerateRuleBody(IEnumerable<RuleDefinition> rules)

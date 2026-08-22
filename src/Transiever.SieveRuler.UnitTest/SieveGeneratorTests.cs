@@ -26,6 +26,7 @@ public sealed class SieveGeneratorTests
 
         Assert.DoesNotContain('\r', script);
         Assert.EndsWith("\n", script, StringComparison.Ordinal);
+        Assert.NotEqual('\n', script[^2]);
     }
 
     [Fact]
