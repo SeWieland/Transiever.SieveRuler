@@ -1,4 +1,5 @@
 .vscode/
+.worktrees/
 artifacts/
 bin/
 node_modules/
