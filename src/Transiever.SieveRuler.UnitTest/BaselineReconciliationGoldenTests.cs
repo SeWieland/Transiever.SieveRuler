@@ -62,12 +62,18 @@ public sealed class BaselineReconciliationGoldenTests
         Assert.Equal(
             Convert.FromBase64String(File.ReadAllText(goldenPath).Trim()),
             result.Content);
-        Assert.True(ContainsBytes(
-            result.Content,
-            Encoding.UTF8.GetBytes("## Flag: |UniqueId:999|Rulename: Opaque provider rule|ProviderOpaque: value|")));
-        Assert.True(ContainsBytes(
-            result.Content,
-            Encoding.UTF8.GetBytes("notify :message \"opaque\";")));
+        byte[] opaqueStart = Encoding.UTF8.GetBytes(
+            "# Existing provider-owned opaque rule");
+        byte[] opaqueEnd = Encoding.UTF8.GetBytes(
+            "# Opaque provider comment survives composition.\n");
+        int opaqueStartIndex = IndexOfBytes(imported.OriginalContent, opaqueStart);
+        int opaqueEndIndex = IndexOfBytes(imported.OriginalContent, opaqueEnd);
+        Assert.True(opaqueStartIndex >= 0);
+        Assert.True(opaqueEndIndex > opaqueStartIndex);
+        byte[] opaqueSpan = imported.OriginalContent[
+            opaqueStartIndex..(opaqueEndIndex + opaqueEnd.Length)];
+        Assert.Equal(opaqueStartIndex, IndexOfBytes(imported.OriginalContent, opaqueSpan));
+        Assert.True(IndexOfBytes(result.Content, opaqueSpan) >= 0);
         Assert.Contains("Current Outlook", Encoding.UTF8.GetString(result.Content));
         Assert.Contains("Retained Thunderbird", Encoding.UTF8.GetString(result.Content));
         Assert.DoesNotContain("Obsolete Outlook", Encoding.UTF8.GetString(result.Content));
@@ -100,6 +106,8 @@ public sealed class BaselineReconciliationGoldenTests
                 optimizationMode: null);
 
         Assert.Empty(result.OwnedSourceRules);
+        Assert.Empty(result.RenderedRules);
+        Assert.Empty(result.AdoptedExternalSpans);
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Code == "DuplicateSuppressedByExternalRule");
@@ -116,6 +124,7 @@ public sealed class BaselineReconciliationGoldenTests
                 new RuleReconciliationResult());
 
         Assert.True(result.IsBlocked);
+        Assert.Equal("stop;\r\n", Encoding.UTF8.GetString(result.Content));
         Assert.Contains(
             result.Diagnostics,
             diagnostic => diagnostic.Code == "ManagedRegionUnreachable");
@@ -162,14 +171,14 @@ public sealed class BaselineReconciliationGoldenTests
     private static byte[] ReadBase64Fixture(string fileName) =>
         Convert.FromBase64String(File.ReadAllText(GetFixturePath(fileName)).Trim());
 
-    private static bool ContainsBytes(byte[] haystack, byte[] needle)
+    private static int IndexOfBytes(byte[] haystack, byte[] needle)
     {
         for (int start = 0; start <= haystack.Length - needle.Length; start++)
         {
             if (haystack.AsSpan(start, needle.Length).SequenceEqual(needle))
-                return true;
+                return start;
         }
 
-        return false;
+        return -1;
     }
 }
