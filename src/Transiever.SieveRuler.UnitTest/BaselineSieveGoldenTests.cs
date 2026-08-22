@@ -66,17 +66,6 @@ public sealed class BaselineSieveGoldenTests
             "Fixtures",
             "SieveV1");
         string goldenPath = Path.Combine(fixtureDirectory, "SIV-002.sieve");
-        if (!File.Exists(goldenPath))
-        {
-            goldenPath = Path.GetFullPath(Path.Combine(
-                AppContext.BaseDirectory,
-                "..",
-                "..",
-                "..",
-                "Fixtures",
-                "SieveV1",
-                "SIV-002.sieve"));
-        }
 
         if (!File.Exists(goldenPath))
         {

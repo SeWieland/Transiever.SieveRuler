@@ -23,10 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Fixtures\SieveV1\OUT-001.rules.json">
+    <None Update="Fixtures\SieveV1\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Fixtures\SieveV1\SIV-001.sieve">
+    <None Update="Fixtures\SieveV1\*.sieve">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
