@@ -6,6 +6,29 @@ namespace Transiever.SieveRuler.UnitTest;
 public sealed class SieveGeneratorTests
 {
     [Fact]
+    public void Generate_UsesLfLineEndingsRegardlessOfHost()
+    {
+        RuleDefinition rule = new()
+        {
+            Name = "Deterministic",
+            TargetFolder = "INBOX/Deterministic",
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SubjectContains,
+                    Values = ["invoice"]
+                }
+            ]
+        };
+
+        string script = new SieveGenerator().Generate([rule], "deterministic.rules.json");
+
+        Assert.DoesNotContain('\r', script);
+        Assert.EndsWith("\n", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_ProducesProviderNeutralReviewNotice()
     {
         RuleDefinition rule = new()
