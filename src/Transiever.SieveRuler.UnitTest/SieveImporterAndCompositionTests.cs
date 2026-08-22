@@ -65,6 +65,53 @@ public sealed class SieveImporterAndCompositionTests
     }
 
     [Fact]
+    public void GenerateRuleBody_ImportsProviderMetadataCompatibleRule()
+    {
+        RuleDefinition rule = new()
+        {
+            Name = "Provider baseline",
+            TargetFolder = "INBOX/Billing",
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SubjectContains,
+                    Values = ["invoice"]
+                }
+            ],
+            Actions =
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = ["INBOX/Billing"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.Stop
+                }
+            ]
+        };
+
+        string body = new SieveGenerator().GenerateRuleBody([rule]);
+        ImportedSieveRule imported = Assert.Single(
+            new SieveImporter().Import(Encoding.UTF8.GetBytes(body)).ExternalRules);
+
+        Assert.Equal("Provider baseline", imported.Rule.Name);
+        Assert.Equal("INBOX/Billing", imported.Rule.TargetFolder);
+        string[] lines = body.Split('\n');
+        int ifIndex = Array.FindIndex(
+            lines,
+            line => line.StartsWith("if ", StringComparison.Ordinal));
+        Assert.True(ifIndex > 0);
+        Assert.StartsWith("## Flag: ", lines[ifIndex - 1], StringComparison.Ordinal);
+        Assert.Contains(
+            "Rulename: Provider baseline",
+            lines[ifIndex - 1],
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Import_RecognizesProviderRuleWithoutStop()
     {
         byte[] script = Encoding.UTF8.GetBytes(

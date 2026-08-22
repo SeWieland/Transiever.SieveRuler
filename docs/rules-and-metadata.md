@@ -43,6 +43,7 @@ Supported action types are:
 * `Stop`
 
 Generated Sieve requires extensions only when the rendered rule needs them.
+Generated Sieve is UTF-8 text without a byte-order mark, uses LF line endings on every host, and ends with exactly one LF for deterministic output.
 `BodyContains` and `SubjectOrBodyContains` require `body`.
 `FileInto` and `CopyInto` require `fileinto`.
 `CopyInto` also requires `copy`.
