@@ -7,6 +7,92 @@ namespace Transiever.SieveRuler.UnitTest;
 public sealed class BaselineSieveGoldenTests
 {
     [Fact]
+    public void Siv002_ConservativeOptimizationGeneratesExactGolden()
+    {
+        RuleDefinition[] rules =
+        [
+            CreateOptimizableRule("First", "first@example.test"),
+            CreateOptimizableRule("Second", "second@example.test")
+        ];
+
+        RuleOptimizationResult result = new RuleOptimizer().Optimize(
+            rules,
+            RuleOptimizationMode.Conservative);
+
+        RuleDefinition optimizedRule = Assert.Single(result.Rules);
+        RuleCondition condition = Assert.Single(optimizedRule.Conditions);
+        RuleCondition exception = Assert.Single(optimizedRule.Exceptions);
+
+        Assert.Equal(2, result.OriginalRuleCount);
+        Assert.Equal(RuleConditionType.SenderContains, condition.Type);
+        Assert.Equal(["first@example.test", "second@example.test"], condition.Values);
+        Assert.Equal(RuleConditionType.BodyContains, exception.Type);
+        Assert.Equal(["internal"], exception.Values);
+        Assert.Collection(
+            optimizedRule.Actions,
+            action =>
+            {
+                Assert.Equal(RuleActionType.SetFlags, action.Type);
+                Assert.Equal(["\\Seen"], action.Values);
+            },
+            action =>
+            {
+                Assert.Equal(RuleActionType.FileInto, action.Type);
+                Assert.Equal(["INBOX/Projects"], action.Values);
+            },
+            action => Assert.Equal(RuleActionType.Stop, action.Type));
+
+        string actualText = new SieveGenerator().Generate(
+            [optimizedRule],
+            "SIV-002.rules.json");
+        byte[] actual = Encoding.UTF8.GetBytes(actualText);
+
+        Assert.DoesNotContain((byte)'\r', actual);
+        Assert.DoesNotContain(new byte[] { 0xEF, 0xBB, 0xBF }, actual);
+        Assert.Equal((byte)'\n', actual[^1]);
+        Assert.NotEqual((byte)'\n', actual[^2]);
+        Assert.Equal(1, actualText.Length - actualText.TrimEnd('\n').Length);
+        Assert.Equal(1, Count(actualText, "if "));
+        Assert.Contains("first@example.test", actualText);
+        Assert.Contains("second@example.test", actualText);
+        Assert.Contains("not body :contains \"internal\"", actualText);
+        Assert.Contains("addflag \"\\\\Seen\" ;", actualText);
+        Assert.Contains("fileinto \"INBOX/Projects\" ;", actualText);
+        Assert.Contains("stop ;", actualText);
+        Assert.Contains("Rulename: Optimized: INBOX/Projects / SenderContains", actualText);
+
+        string fixtureDirectory = Path.Combine(
+            AppContext.BaseDirectory,
+            "Fixtures",
+            "SieveV1");
+        string goldenPath = Path.Combine(fixtureDirectory, "SIV-002.sieve");
+        if (!File.Exists(goldenPath))
+        {
+            goldenPath = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory,
+                "..",
+                "..",
+                "..",
+                "Fixtures",
+                "SieveV1",
+                "SIV-002.sieve"));
+        }
+
+        if (!File.Exists(goldenPath))
+        {
+            string actualPath = Path.Combine(
+                Path.GetTempPath(),
+                $"SieveRuler-{Guid.NewGuid():N}-SIV-002.actual.sieve");
+            File.WriteAllBytes(actualPath, actual);
+            Assert.Fail($"Missing SIV-002 golden. Actual bytes were written to '{actualPath}'.");
+        }
+
+        Assert.Equal(
+            File.ReadAllBytes(goldenPath),
+            actual);
+    }
+
+    [Fact]
     public async Task Out001_GeneratesExactSiv001Golden()
     {
         string fixtureDirectory = Path.Combine(
@@ -103,5 +189,58 @@ public sealed class BaselineSieveGoldenTests
             goldenPath,
             TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
+    }
+
+    private static RuleDefinition CreateOptimizableRule(string name, string sender) =>
+        new()
+        {
+            Name = name,
+            TargetFolder = "INBOX/Projects",
+            Actions =
+            [
+                new RuleAction
+                {
+                    Type = RuleActionType.SetFlags,
+                    Values = ["\\Seen"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.FileInto,
+                    Values = ["INBOX/Projects"]
+                },
+                new RuleAction
+                {
+                    Type = RuleActionType.Stop
+                }
+            ],
+            Conditions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.SenderContains,
+                    Values = [sender]
+                }
+            ],
+            Exceptions =
+            [
+                new RuleCondition
+                {
+                    Type = RuleConditionType.BodyContains,
+                    Values = ["internal"]
+                }
+            ]
+        };
+
+    private static int Count(string value, string search)
+    {
+        int count = 0;
+        int position = 0;
+        while ((position = value.IndexOf(search, position, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            position += search.Length;
+        }
+
+        return count;
     }
 }
