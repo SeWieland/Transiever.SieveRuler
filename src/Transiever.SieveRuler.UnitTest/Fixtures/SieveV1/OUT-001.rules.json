@@ -1,0 +1,78 @@
+{
+  "$schema": "urn:sieveruler:rules:v1",
+  "schemaVersion": 1,
+  "sourceId": "outlook",
+  "rules": [
+    {
+      "name": "Project invoices",
+      "targetFolder": "INBOX/Projects",
+      "actions": [
+        {
+          "type": "SetFlags",
+          "values": [
+            "\\Seen"
+          ]
+        },
+        {
+          "type": "FileInto",
+          "values": [
+            "INBOX/Projects"
+          ]
+        },
+        {
+          "type": "CopyInto",
+          "values": [
+            "Archive/Projects"
+          ]
+        },
+        {
+          "type": "Redirect",
+          "values": [
+            "archive@example.test"
+          ]
+        },
+        {
+          "type": "Stop",
+          "values": []
+        }
+      ],
+      "conditionMode": "All",
+      "conditions": [
+        {
+          "type": "SubjectContains",
+          "values": [
+            "invoice"
+          ]
+        },
+        {
+          "type": "SenderContains",
+          "values": [
+            "billing@example.test"
+          ]
+        },
+        {
+          "type": "ReceiverContains",
+          "values": [
+            "team@example.test"
+          ]
+        },
+        {
+          "type": "HasAttachment",
+          "values": []
+        }
+      ],
+      "exceptions": [
+        {
+          "type": "BodyContains",
+          "values": [
+            "internal"
+          ]
+        }
+      ],
+      "ownership": "Managed",
+      "originalOrder": 1,
+      "requiredCapabilities": []
+    }
+  ],
+  "diagnostics": []
+}

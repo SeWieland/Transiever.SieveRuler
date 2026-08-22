@@ -22,4 +22,13 @@
     <ProjectReference Include="..\Transiever.SieveRuler\Transiever.SieveRuler.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\SieveV1\OUT-001.rules.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\SieveV1\SIV-001.sieve">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
