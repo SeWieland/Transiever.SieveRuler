@@ -78,8 +78,9 @@ When the target is the current active script, deployment writes a server-side `s
 It then replaces the active script in place.
 
 When the target is not active, deployment uploads and activates it.
-After a successful deployment, `srtx` prunes inactive SieveRuler-owned history scripts.
+After a successful deployment, `srtx` prunes inactive history scripts in SieveRuler's reserved history namespace.
 Pruned names match `srtx-YYYYMMDDHHMMSS-*` or `srtx-backup-YYYYMMDDHHMMSS-*`.
+Matching names are managed regardless of who created them.
 
 The default retention keeps the oldest backup plus the newest 5 remaining history scripts.
 
@@ -95,7 +96,7 @@ They disable active Sieve processing if the preview started with no active scrip
 `--force` bypasses only the current-active candidate mismatch check.
 Backup and content hash validation still apply.
 
-History commands work directly from retained SieveRuler-owned server scripts.
+History commands work directly from retained server scripts in SieveRuler's reserved history namespace.
 
 `history list` shows `srtx-backup-*` backups and `srtx-*` candidates, marking the oldest backup or no-active marker as `original`.
 `history show <name>` prints the retained script or writes it with `--sieve`.
@@ -103,9 +104,9 @@ History commands work directly from retained SieveRuler-owned server scripts.
 creates a fresh backup of the current active state before restoring.
 `latest` resolves to the newest inactive `srtx-backup-*` script.
 If `original` is a `srtx-backup-*-no-active` marker, it disables active Sieve processing.
-`history delete <name>` removes one inactive SieveRuler-owned history script and refuses to delete the active script.
-`history prune` deletes all inactive SieveRuler-owned history scripts, including the original backup or no-active marker.
-It keeps the active script and non-SieveRuler script names.
+`history delete <name>` removes one inactive history script in SieveRuler's reserved history namespace and refuses to delete the active script.
+`history prune` deletes all inactive history scripts in SieveRuler's reserved history namespace, including the original backup or no-active marker.
+It keeps the active script and script names outside SieveRuler's reserved history namespace.
 Use `--dry-run` with delete or prune to validate without mutating the server.
 
 ManageSieve configuration:

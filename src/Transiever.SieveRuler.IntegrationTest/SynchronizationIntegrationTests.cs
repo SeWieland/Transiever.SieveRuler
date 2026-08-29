@@ -133,6 +133,9 @@ public sealed class SynchronizationIntegrationTests
                     RemoteSieveState final =
                         await connection.ReadStateAsync(cancellationToken);
                     Assert.Equal("original", final.ActiveScriptName);
+                    Assert.Equal(
+                        previewResult.Plan!.CandidateContentSha256,
+                        final.ActiveContentSha256);
                     Assert.Contains(final.Scripts, script => script.Name == "original");
                     Assert.Contains(
                         final.Scripts,
@@ -169,9 +172,11 @@ public sealed class SynchronizationIntegrationTests
                     Assert.Equal(
                         Convert.ToHexString(SHA256.HashData(originalContent)),
                         rolledBack.ActiveContentSha256);
+                    Assert.Equal(originalContent, rolledBack.ActiveContent);
                     Assert.Contains(
                         rolledBack.Scripts,
-                        script => script.Name == deployResult.BackupScriptName);
+                        script => script.Name == deployResult.BackupScriptName &&
+                            !script.IsActive);
 
                     HistoryListResult history =
                         await workflow.ListHistoryAsync(

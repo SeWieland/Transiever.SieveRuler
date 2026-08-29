@@ -433,6 +433,9 @@ public sealed class SieveSynchronizationWorkflow(
         byte[] selected = await connection.GetScriptAsync(history.Name, cancellationToken);
         string selectedHash = Hash(selected);
         await connection.CheckScriptAsync(selected, cancellationToken);
+        RemoteSieveState refreshed = await connection.ReadStateAsync(cancellationToken);
+        EnsureActiveStateUnchanged(state, refreshed);
+        state = refreshed;
         if (state.ActiveScriptName.Length > 0 &&
             state.ActiveContentSha256.Equals(
                 selectedHash,
@@ -1194,6 +1197,19 @@ public sealed class SieveSynchronizationWorkflow(
         ISieveServerConnection connection,
         CancellationToken cancellationToken)
     {
+        byte[] marker = await connection.GetScriptAsync(
+            history.Name,
+            cancellationToken);
+        if (!marker.AsSpan().SequenceEqual(NoActiveOriginalMarkerContent))
+        {
+            throw new InvalidDataException(
+                "The selected no-active history marker does not contain the canonical marker content.");
+        }
+
+        RemoteSieveState refreshed = await connection.ReadStateAsync(cancellationToken);
+        EnsureActiveStateUnchanged(state, refreshed);
+        state = refreshed;
+
         if (state.ActiveScriptName.Length == 0)
         {
             return new HistoryRestoreResult
@@ -1275,7 +1291,7 @@ public sealed class SieveSynchronizationWorkflow(
         }
 
         suffix = name[(separatorIndex + 1)..];
-        return true;
+        return suffix.Length > 0;
     }
 
     private static HistoryCleanupResult MergeCleanup(
@@ -1394,6 +1410,22 @@ public sealed class SieveSynchronizationWorkflow(
         {
             throw new InvalidOperationException(
                 "The active server script changed after preview. Generate a new deployment plan.");
+        }
+    }
+
+    private static void EnsureActiveStateUnchanged(
+        RemoteSieveState expected,
+        RemoteSieveState actual)
+    {
+        if (!actual.ActiveScriptName.Equals(
+                expected.ActiveScriptName,
+                StringComparison.Ordinal) ||
+            !actual.ActiveContentSha256.Equals(
+                expected.ActiveContentSha256,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "The active server script changed during history restore. Review the current state and retry.");
         }
     }
 

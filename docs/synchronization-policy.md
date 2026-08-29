@@ -27,6 +27,9 @@ Non-active targets continue to use inactive staging.
 
 Deployment validates the recorded candidate hash.
 It then runs `CHECKSCRIPT` and rechecks the active script name and hash before mutating the server.
+Failures before candidate upload leave the candidate and active state unchanged.
+Storage-pressure recovery may prune eligible history before a retry fails.
+Failures after a target write can leave changed target state while retaining recovery evidence.
 
 Active-script replacement writes the previous active content to a unique `srtx-backup-*` script,
 then replaces the active script in place with `PUTSCRIPT` and verifies the active target hash.
@@ -34,7 +37,7 @@ then replaces the active script in place with `PUTSCRIPT` and verifies the activ
 Non-active targets are uploaded inactive and then activated by default.
 Existing inactive scripts are not overwritten or deleted except by protected history cleanup.
 
-After successful deployment, cleanup may delete only inactive SieveRuler-owned history scripts.
+After successful deployment, cleanup may delete only inactive history scripts in SieveRuler’s reserved history namespace.
 Eligible history scripts match `srtx-YYYYMMDDHHMMSS-*` or `srtx-backup-YYYYMMDDHHMMSS-*`.
 The active script, target, source active script, current plan backup, non-SieveRuler names, and the oldest `srtx-backup-*` are protected.
 Default retention keeps that oldest backup plus the newest 5 remaining history scripts.
@@ -45,6 +48,7 @@ Cleanup failures are returned as warnings, and they do not convert a successful 
 
 Deployments from a no-active original state create an inactive `srtx-backup-*-no-active` marker.
 The marker allows the unmanaged state to be restored later without guessing.
+No-active restoration validates canonical marker bytes.
 
 ## Rollback
 
@@ -59,15 +63,19 @@ If the preview started with no active script, rollback disables active filtering
 
 ## History
 
-History operations list and show retained SieveRuler-owned backup and candidate scripts directly from the server.
+History operations list and show retained backup and candidate scripts in SieveRuler’s reserved history namespace directly from the server.
 
 Restoring a history entry first creates a fresh backup of the current active script,
 then writes the selected content into the current active script name.
+History restore rechecks the active name and hash immediately before mutation as a best-effort freshness guard.
 The special history name `latest` resolves to the newest inactive `srtx-backup-*` entry.
+
+The strict `srtx-*` and `srtx-backup-*` patterns are reserved history namespaces and are not independent provenance proof.
+Matching names are managed regardless of who created them.
 
 Restoring the original no-active marker disables active Sieve processing after backing up the current active script.
 
-History delete removes one inactive SieveRuler-owned history script and refuses active scripts.
+History delete removes one inactive history script in SieveRuler’s reserved history namespace and refuses active scripts.
 
-History prune removes all inactive SieveRuler-owned history scripts, including the original backup or no-active marker.
+History prune removes all inactive history scripts in SieveRuler’s reserved history namespace, including the original backup or no-active marker.
 It keeps the active script and non-SieveRuler names.
