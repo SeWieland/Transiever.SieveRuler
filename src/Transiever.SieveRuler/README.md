@@ -41,7 +41,7 @@ In short:
 * Active-script replacement creates a server-side backup before mutation.
 * Rollback restores that backup, or reactivates the recorded source script when no backup was created.
 * Generated managed rules include Open-Xchange-compatible `## Flag:` comments with stable IDs and rule names for provider UIs.
-* Deployment can prune inactive SieveRuler-owned history, keeping the oldest backup plus the newest 5 remaining history scripts by default.
+* Deployment can prune inactive history in SieveRuler's reserved history namespace, keeping the oldest backup plus the newest 5 remaining history scripts by default.
 * History restore creates a fresh backup before changing active filtering.
 * History restore can restore the original unmanaged or no-active state when a retained marker exists.
 
