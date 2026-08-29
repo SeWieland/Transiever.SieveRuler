@@ -26,7 +26,7 @@ public static class ConsolePresentation
         Console.WriteLine("Preview preserves the current active script name by default; deploy activates the previewed candidate after creating any required server-side backup.");
         Console.WriteLine("Deploy prunes inactive SieveRuler history automatically, keeping the oldest backup plus the newest retained history scripts.");
         Console.WriteLine("History restore creates a fresh backup before restoring a retained SieveRuler version, latest backup, or original state.");
-        Console.WriteLine("History delete and prune remove inactive SieveRuler-owned history; prune keeps the active script and non-SieveRuler scripts.");
+        Console.WriteLine("History delete and prune remove inactive history in SieveRuler's reserved history namespace; matching names are managed regardless of who created them. Prune keeps the active script and scripts outside that namespace.");
         Console.WriteLine("Review artifacts: --reconciled-rules, --candidate-rules, --candidate, --server-snapshot, --plan.");
     }
 
