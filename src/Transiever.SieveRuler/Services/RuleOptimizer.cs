@@ -50,7 +50,10 @@ public sealed class RuleOptimizer : IRuleOptimizer
                 optimizedRules.Add(BuildRule(group));
             }
 
-            group.AddRule(candidate.ConditionType, candidate.Values);
+            group.AddRule(
+                candidate.ConditionType,
+                candidate.Values,
+                candidate.StopsProcessing);
             optimizedRules[group.OutputIndex] = BuildRule(group);
         }
 
@@ -109,10 +112,16 @@ public sealed class RuleOptimizer : IRuleOptimizer
         IReadOnlyList<RuleCondition> exceptions = rule.Exceptions
             .Select(CloneCondition)
             .ToList();
+        bool stopsProcessing = mode != RuleOptimizationMode.Conservative &&
+            actions[^1].Type == RuleActionType.Stop &&
+            actions.Count(action => action.Type == RuleActionType.Stop) == 1;
+        IReadOnlyList<RuleAction> sharedActions = stopsProcessing
+            ? actions.Take(actions.Count - 1).ToList()
+            : actions;
 
         var key = new OptimizationKey(
             targetFolder.Trim(),
-            CreateActionSignature(actions),
+            CreateActionSignature(sharedActions),
             CreateConditionSignature(exceptions),
             mode == RuleOptimizationMode.Conservative
                 ? condition.Type
@@ -121,7 +130,8 @@ public sealed class RuleOptimizer : IRuleOptimizer
             key,
             condition.Type,
             CleanValues(condition.Values).ToArray(),
-            actions,
+            sharedActions,
+            stopsProcessing,
             exceptions);
 
         return true;
@@ -224,13 +234,17 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
     private static RuleDefinition BuildRule(OptimizationGroup group)
     {
+        var actions = group.Actions.Select(CloneAction).ToList();
+        if (group.StopsProcessing)
+            actions.Add(new RuleAction { Type = RuleActionType.Stop });
+
         return new RuleDefinition
         {
             Name = group.RuleCount == 1
                 ? group.FirstRuleName
                 : $"Optimized: {group.Key.TargetFolder} / {group.ConditionSummary}",
             TargetFolder = group.Key.TargetFolder,
-            Actions = group.Actions.Select(CloneAction).ToList(),
+            Actions = actions,
             ConditionMode = group.ConditionBucketCount > 1
                 ? RuleConditionMode.Any
                 : RuleConditionMode.All,
@@ -275,6 +289,7 @@ public sealed class RuleOptimizer : IRuleOptimizer
         RuleConditionType ConditionType,
         IReadOnlyList<string> Values,
         IReadOnlyList<RuleAction> Actions,
+        bool StopsProcessing,
         IReadOnlyList<RuleCondition> Exceptions);
 
     private sealed class OptimizationGroup
@@ -307,6 +322,8 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
         public int RuleCount { get; private set; }
 
+        public bool StopsProcessing { get; private set; }
+
         public int ConditionBucketCount => conditionValues.Count;
 
         public string ConditionSummary =>
@@ -316,9 +333,11 @@ public sealed class RuleOptimizer : IRuleOptimizer
 
         public void AddRule(
             RuleConditionType conditionType,
-            IEnumerable<string> ruleValues)
+            IEnumerable<string> ruleValues,
+            bool stopsProcessing)
         {
             RuleCount++;
+            StopsProcessing |= stopsProcessing;
 
             if (!conditionValues.TryGetValue(conditionType, out HashSet<string>? values))
             {

@@ -5,6 +5,100 @@ namespace Transiever.SieveRuler.UnitTest;
 
 public sealed class RuleOptimizerTests
 {
+    [Theory]
+    [InlineData(RuleOptimizationMode.Balanced, 0)]
+    [InlineData(RuleOptimizationMode.Balanced, 1)]
+    [InlineData(RuleOptimizationMode.Balanced, 2)]
+    [InlineData(RuleOptimizationMode.Aggressive, 0)]
+    [InlineData(RuleOptimizationMode.Aggressive, 1)]
+    [InlineData(RuleOptimizationMode.Aggressive, 2)]
+    public void Optimize_StopDominatesCompatibleGroupRegardlessOfCandidateOrder(
+        RuleOptimizationMode mode,
+        int stoppingRuleIndex)
+    {
+        RuleDefinition[] rules =
+        [
+            CreateSenderRule(
+                "First",
+                "Inbox/Development",
+                "first@one.example",
+                stoppingRuleIndex == 0 ? FileIntoAndStop("Inbox/Development") : null),
+            CreateSenderRule(
+                "Second",
+                "Inbox/Development",
+                "second@two.example",
+                stoppingRuleIndex == 1 ? FileIntoAndStop("Inbox/Development") : null),
+            CreateSenderRule(
+                "Third",
+                "Inbox/Development",
+                "third@three.example",
+                stoppingRuleIndex == 2 ? FileIntoAndStop("Inbox/Development") : null)
+        ];
+
+        RuleOptimizationResult result = new RuleOptimizer().Optimize(rules, mode);
+
+        RuleDefinition optimizedRule = Assert.Single(result.Rules);
+        Assert.Collection(
+            optimizedRule.Actions,
+            action => Assert.Equal(RuleActionType.FileInto, action.Type),
+            action => Assert.Equal(RuleActionType.Stop, action.Type));
+        Assert.Equal(
+            ["first@one.example", "second@two.example", "third@three.example"],
+            Assert.Single(optimizedRule.Conditions).Values);
+        Assert.Equal(
+            "Merged 3 SenderContains rules for 'Inbox/Development'.",
+            Assert.Single(result.Diagnostics).Message);
+
+        string script = new SieveGenerator().Generate(result.Rules);
+        Assert.Equal(1, script.Split("stop ;", StringSplitOptions.None).Length - 1);
+        Assert.Contains("fileinto \"Inbox/Development\" ;\nstop ;", script);
+    }
+
+    [Fact]
+    public void Optimize_ConservativeKeepsMixedStopPresenceSeparate()
+    {
+        RuleDefinition[] rules =
+        [
+            CreateSenderRule("Continue", "Inbox/Development", "first@example.com"),
+            CreateSenderRule(
+                "Stop",
+                "Inbox/Development",
+                "second@example.com",
+                FileIntoAndStop("Inbox/Development"))
+        ];
+
+        RuleOptimizationResult result = new RuleOptimizer().Optimize(
+            rules,
+            RuleOptimizationMode.Conservative);
+
+        Assert.Equal(2, result.Rules.Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Optimize_DoesNotApplyStopDominanceToMalformedStopActions(bool repeated)
+    {
+        RuleAction[] malformedActions = repeated
+            ? [FileInto("Inbox/Development"), Stop(), Stop()]
+            : [Stop(), FileInto("Inbox/Development")];
+        RuleDefinition[] rules =
+        [
+            CreateSenderRule("Continue", "Inbox/Development", "first@example.com"),
+            CreateSenderRule(
+                "Malformed stop",
+                "Inbox/Development",
+                "second@example.com",
+                malformedActions)
+        ];
+
+        RuleOptimizationResult result = new RuleOptimizer().Optimize(
+            rules,
+            RuleOptimizationMode.Aggressive);
+
+        Assert.Equal(2, result.Rules.Count);
+    }
+
     [Fact]
     public void Optimize_MergesEquivalentSingleConditionRules()
     {
@@ -614,6 +708,18 @@ public sealed class RuleOptimizerTests
             Type = RuleActionType.Stop
         }
     ];
+
+    private static RuleAction[] FileIntoAndStop(string targetFolder) =>
+    [
+        FileInto(targetFolder),
+        Stop()
+    ];
+
+    private static RuleAction Stop() =>
+        new()
+        {
+            Type = RuleActionType.Stop
+        };
 
     private static RuleAction FileInto(string targetFolder) =>
         new()

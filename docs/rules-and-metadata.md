@@ -52,15 +52,20 @@ Generated Sieve is UTF-8 text without a byte-order mark, uses LF line endings on
 
 ## Optimization
 
-Optimization never merges rules with different effective actions or different exceptions.
+Optimization never merges rules with different effective actions or different exceptions, except for the mode-specific terminal `Stop` behavior below.
 When `actions` is empty, `targetFolder` is treated as a single `FileInto` action.
 
 `conservative` merges exact single-condition equivalents with the same condition type, actions, and exceptions.
 `balanced` also merges action-equivalent single-condition rules across different condition types into one `Any` rule.
 `aggressive` keeps the balanced merge behavior and applies broader sender-domain inference.
 
+In `balanced` and `aggressive` modes, otherwise compatible rules may differ only by the presence of one terminal `Stop`.
+When any candidate has that terminal action, the optimizer merges all compatible candidates and gives the resulting rule one terminal `Stop`.
+This intentionally strengthens stop-processing behavior for messages that originally matched a non-stopping candidate.
+Non-terminal or repeated `Stop` actions are not eligible for this behavior.
+
 Redirect-only rules are not merged.
-Rules that include redirect may merge only when they also have a delivery folder and the full action list is identical.
+Rules that include redirect may merge only when they also have a delivery folder and their non-stop action list is identical, subject to the terminal `Stop` behavior above.
 
 ## Composition
 
