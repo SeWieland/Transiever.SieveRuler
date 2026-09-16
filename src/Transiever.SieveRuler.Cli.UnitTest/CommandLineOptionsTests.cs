@@ -72,15 +72,49 @@ public sealed class CommandLineOptionsTests
                 "--sieve-host", "sieve.test",
                 "--sieve-port", "4191",
                 "--sieve-username", "user",
-                "--sieve-password", "password",
+                "--sieve-password-stdin",
                 "--sieve-security-mode", "ImplicitTls"
             ]);
 
         Assert.Equal("sieve.test", options.SieveHost);
         Assert.Equal(4191, options.SievePort);
         Assert.Equal("user", options.SieveUserName);
-        Assert.Equal("password", options.SievePassword);
+        Assert.True(options.SievePasswordStdin);
         Assert.Equal(SieveConnectionSecurity.ImplicitTls, options.SieveSecurity);
+    }
+
+    [Fact]
+    public void Parse_RejectsPasswordOptionWithoutDisplayingItsValue()
+    {
+        const string password = "secret";
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => CommandLineOptions.Parse(["preview", "--sieve-password", password]));
+
+        Assert.Equal("Passwords cannot be supplied through --sieve-password.", exception.Message);
+        Assert.DoesNotContain(password, exception.Message);
+    }
+
+    [Theory]
+    [InlineData("--sieve-password=secret")]
+    [InlineData("--sieve-password-stdin=secret")]
+    public void Parse_RedactsPasswordOptionValues(string option)
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => CommandLineOptions.Parse(["preview", option]));
+
+        Assert.Equal("Secret input cannot be supplied through an option value.", exception.Message);
+        Assert.DoesNotContain("secret", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("--sieve-password=secret")]
+    [InlineData("--sieve-password-stdin", "secret")]
+    [InlineData("--sieve-password-stdin", "-secret")]
+    public void Parse_RedactsPasswordValuesAtEveryPosition(params string[] values)
+    {
+        string[] args = values.Length == 1 ? values : ["preview", ..values];
+        Assert.DoesNotContain("secret", Assert.Throws<ArgumentException>(() => CommandLineOptions.Parse(args)).Message);
     }
 
     [Fact]
