@@ -29,4 +29,7 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Transiever.SieveRuler.Cli.UnitTest" />
+  </ItemGroup>
 </Project>

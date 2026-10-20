@@ -122,6 +122,7 @@ TRANSIEVER_SIEVE_SECURITY_MODE=StartTlsRequired
 Use `--sieve-host`, `--sieve-port`, `--sieve-username`, and
 `--sieve-security-mode` to override non-secret values for a targeted command.
 Use `--sieve-password-stdin` to read one non-empty password from redirected standard input.
+The selector rejects interactive terminal input; omit it to use the non-echoed password prompt.
 Passwords cannot be supplied as command-line values.
 The port and security mode are optional.
 `ImplicitTls` is supported.

@@ -7,6 +7,26 @@ namespace Transiever.SieveRuler.Cli.UnitTest;
 public sealed class ConfigurationProviderTests
 {
     [Fact]
+    public void StandardInputPassword_RejectsTerminalWithoutReading()
+    {
+        TextReader originalInput = Console.In;
+        using var input = new StringReader("terminal-password\n");
+        Console.SetIn(input);
+        try
+        {
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+                () => Provider.ReadStandardInputPassword(inputIsRedirected: false));
+
+            Assert.Contains("redirected standard input", exception.Message);
+            Assert.Equal("terminal-password", input.ReadLine());
+        }
+        finally
+        {
+            Console.SetIn(originalInput);
+        }
+    }
+
+    [Fact]
     public void Provider_ReadsTransieverEnvironment()
     {
         Clear();
@@ -22,6 +42,7 @@ public sealed class ConfigurationProviderTests
 
             Assert.Equal("sieve.test", configuration.Host);
             Assert.Equal("user", configuration.UserName);
+            Assert.Equal("password", configuration.Password);
             Assert.Equal("stdin-sentinel", Console.In.ReadLine());
         }
         finally
@@ -89,18 +110,28 @@ public sealed class ConfigurationProviderTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("\n")]
-    public void Provider_RejectsMissingExplicitStandardInputPassword(string input)
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Provider_RejectsMissingExplicitStandardInputPasswordEvenWithEnvironmentPassword(bool emptyLine)
     {
-        Clear(); Set("HOST", "sieve.test"); Set("USERNAME", "user");
-        TextReader originalInput = Console.In; Console.SetIn(new StringReader(input));
+        Clear();
+        Set("HOST", "sieve.test");
+        Set("USERNAME", "user");
+        Set("PASSWORD", "environment-password");
+        TextReader originalInput = Console.In;
+        Console.SetIn(new StringReader(emptyLine ? "\n" : ""));
         try
         {
-            Assert.Throws<InvalidOperationException>(() => new Provider().GetConfiguration(
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => new Provider().GetConfiguration(
                 CommandLineOptions.Parse(["preview", "--sieve-password-stdin"])));
+
+            Assert.Equal("Standard input did not contain a Sieve password.", exception.Message);
         }
-        finally { Console.SetIn(originalInput); Clear(); }
+        finally
+        {
+            Console.SetIn(originalInput);
+            Clear();
+        }
     }
 
     private static void Set(string suffix, string value) =>
