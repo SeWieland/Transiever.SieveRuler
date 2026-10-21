@@ -6,6 +6,22 @@ namespace Transiever.SieveRuler.Cli.UnitTest;
 public sealed class CommandLineOptionsTests
 {
     [Fact]
+    public void Parse_ReadsAccountSelection()
+    {
+        const string reference = "account:57ec9b3c-42e7-443f-b5d2-37f94c20c120";
+        CommandLineOptions options = CommandLineOptions.Parse(["preview", "--account", reference]);
+        Assert.Equal(reference, options.Account);
+    }
+
+    [Theory]
+    [InlineData("--refresh-token=secret-sentinel")]
+    [InlineData("--client-secret", "secret-sentinel")]
+    public void Parse_RedactsArbitrarySecretOptions(params string[] values)
+    {
+        Assert.DoesNotContain("secret-sentinel", Assert.Throws<ArgumentException>(
+            () => CommandLineOptions.Parse(["preview", ..values])).Message);
+    }
+    [Fact]
     public void Parse_WithoutArguments_ShowsHelp()
     {
         Assert.True(CommandLineOptions.Parse([]).ShowHelp);

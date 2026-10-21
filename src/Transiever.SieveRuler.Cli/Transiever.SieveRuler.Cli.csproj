@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Transiever.SieveRuler\Transiever.SieveRuler.csproj" />
+    <PackageReference Include="Transiever.Common.Accounts" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
