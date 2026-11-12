@@ -62,7 +62,7 @@ jobs:
         run: dotnet build Transiever.SieveRuler.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Transiever.SieveRuler.slnx --configuration Release --no-build
+        run: dotnet test --solution Transiever.SieveRuler.slnx --configuration Release --no-build
 
       - name: NuGet login
         uses: NuGet/login@v1

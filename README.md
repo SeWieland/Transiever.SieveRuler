@@ -54,8 +54,7 @@ Start here, then follow the component-specific guides:
 ```text
 src/Transiever.SieveRuler/                 Packable library
 src/Transiever.SieveRuler.Cli/             `srtx` CLI and future .NET tool
-src/Transiever.SieveRuler.UnitTest/        Pure engine tests
-src/Transiever.SieveRuler.Cli.UnitTest/    CLI tests
+src/Transiever.SieveRuler.UnitTest/        Engine and CLI tests
 src/Transiever.SieveRuler.IntegrationTest/ Docker-backed ManageSieve test
 ```
 
@@ -79,7 +78,7 @@ Operational details intentionally live in the linked component guides instead of
 
 ```bash
 dotnet build Transiever.SieveRuler.slnx
-dotnet test Transiever.SieveRuler.slnx
+dotnet test --solution Transiever.SieveRuler.slnx
 dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 ```
 

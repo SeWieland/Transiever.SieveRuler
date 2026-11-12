@@ -20,7 +20,6 @@ src/
   Transiever.SieveRuler/
   Transiever.SieveRuler.Cli/
   Transiever.SieveRuler.UnitTest/
-  Transiever.SieveRuler.Cli.UnitTest/
   Transiever.SieveRuler.IntegrationTest/
 ```
 
@@ -48,7 +47,7 @@ Update the canonical owner for the changed behavior.
 ```bash
 dotnet restore Transiever.SieveRuler.slnx
 dotnet build Transiever.SieveRuler.slnx
-dotnet test Transiever.SieveRuler.slnx
+dotnet test --solution Transiever.SieveRuler.slnx
 dotnet run --project src/Transiever.SieveRuler.Cli -- --help
 ```
 

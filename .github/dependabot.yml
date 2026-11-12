@@ -32,7 +32,6 @@ updates:
   - package-ecosystem: nuget
     directories:
       - /src/Transiever.SieveRuler.UnitTest
-      - /src/Transiever.SieveRuler.Cli.UnitTest
       - /src/Transiever.SieveRuler.IntegrationTest
     schedule:
       interval: daily
