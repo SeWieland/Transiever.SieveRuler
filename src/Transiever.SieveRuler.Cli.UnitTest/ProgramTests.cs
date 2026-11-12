@@ -3,6 +3,12 @@ namespace Transiever.SieveRuler.Cli.UnitTest;
 [Collection("Environment")]
 public sealed class ProgramTests
 {
+    [Fact]
+    public async Task Main_AccountHelp_ReturnsWithoutAccessingStores()
+    {
+        Assert.Equal(0, await Program.Main(["account", "--help"]));
+    }
+
     [Theory]
     [InlineData("--sieve-password", "cli-secret-sentinel")]
     [InlineData("--sieve-password=cli-secret-sentinel")]

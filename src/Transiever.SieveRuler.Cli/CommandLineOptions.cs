@@ -48,6 +48,8 @@ public sealed class CommandLineOptions
 
     public string? SieveHost { get; private init; }
 
+    public string? Account { get; private init; }
+
     public int? SievePort { get; private init; }
 
     public string? SieveUserName { get; private init; }
@@ -64,6 +66,8 @@ public sealed class CommandLineOptions
         {
             return new CommandLineOptions { ShowHelp = true };
         }
+
+        SecretOptionSafety.Validate(args);
 
         if (IsSecretOptionValue(args[0]))
         {
@@ -94,6 +98,7 @@ public sealed class CommandLineOptions
         var historyLimit = 5;
         var pruneHistory = true;
         string? sieveHost = null;
+        string? account = null;
         int? sievePort = null;
         string? sieveUserName = null;
         var sievePasswordStdin = false;
@@ -195,6 +200,9 @@ public sealed class CommandLineOptions
                 case "--sieve-host":
                     sieveHost = ReadOptionValue(args, ref index, option);
                     break;
+                case "--account":
+                    account = ReadOptionValue(args, ref index, option);
+                    break;
                 case "--sieve-port":
                     sievePort = ReadPortOption(args, ref index, option);
                     break;
@@ -265,6 +273,7 @@ public sealed class CommandLineOptions
             HistoryLimit = historyLimit,
             PruneHistory = pruneHistory,
             SieveHost = sieveHost,
+            Account = account,
             SievePort = sievePort,
             SieveUserName = sieveUserName,
             SievePasswordStdin = sievePasswordStdin,

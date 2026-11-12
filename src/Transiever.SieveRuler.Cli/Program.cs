@@ -1,5 +1,6 @@
 using Transiever.SieveRuler.Application;
 using Transiever.SieveRuler.Services;
+using Transiever.Common.Accounts;
 
 namespace Transiever.SieveRuler.Cli;
 
@@ -7,6 +8,9 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0].Equals("account", StringComparison.OrdinalIgnoreCase))
+            return RunAccount(args[1..]);
+
         CommandLineOptions options;
         try
         {
@@ -49,6 +53,22 @@ public static class Program
         try
         {
             return await cli.RunAsync(options);
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine(exception.Message);
+            return 1;
+        }
+    }
+
+    private static int RunAccount(string[] args)
+    {
+        try
+        {
+            AccountCommandOptions options = AccountCommandOptions.Parse(args);
+            return new AccountCommandApplication(
+                () => new JsonAccountProfileStore(), CredentialStores.CreateDefault,
+                Environment.GetEnvironmentVariable, new ConsoleCliInput(), Console.Out).Run(options);
         }
         catch (Exception exception)
         {

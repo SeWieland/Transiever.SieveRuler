@@ -128,3 +128,64 @@ The port and security mode are optional.
 `ImplicitTls` is supported.
 Plaintext authentication is refused.
 Missing passwords are prompted only on an interactive terminal.
+
+## Saved Accounts
+
+Account profiles are shared through `Transiever.Common.Accounts` and contain only connection and identity settings.
+The profile store uses the current user's application-data directory below `Transiever/accounts`.
+The rules library does not open profiles or credential stores.
+
+Create a local profile, then use its printed reference:
+
+```bash
+srtx account create --name Work --sieve-host sieve.example.com --sieve-username user@example.com
+srtx account list
+srtx account show account:<guid>
+srtx account update account:<guid> --name Personal --sieve-port 4190
+srtx account login account:<guid>
+srtx account status account:<guid>
+srtx preview --account account:<guid> --rules rules.json
+srtx account logout account:<guid>
+srtx account forget account:<guid>
+```
+
+Replace `account:<guid>` with the complete reference printed by `create` or `list`.
+References remain stable when profile fields change.
+`--account account:<guid>` also selects a profile for account commands.
+`TRANSIEVER_ACCOUNT` supplies the default reference; an explicit selection takes precedence.
+With no selected account, workflow commands do not access either store.
+No arguments and help do not read configuration, credentials, or standard input.
+
+`create` prompts for missing name, host, and username only when both input and output are terminals.
+Headless creation requires `--name` and either explicit or environment host and username values.
+`--provider` defaults to `managesieve`, and `--account-id` defaults to the username.
+`create` and `update` also accept `--authentication`, `--sieve-port`, and `--sieve-security-mode`.
+`update` changes non-secret fields; it retains the reference and stored credentials.
+Host, username, port, and security environment variables apply to profile creation and update as well.
+
+For a selected connection, resolution uses explicit options and selected standard input first, then the documented environment variables, then the profile and credential store, then a terminal prompt.
+Headless execution never prompts.
+The current SieveRuler connection uses PLAIN authentication over TLS.
+An account with a different `--authentication` preference is refused before retrieving its credential.
+Plaintext connections remain refused.
+Stored refresh tokens are never passed to the ManageSieve password authenticator.
+
+`login` stores or replaces a local credential; it does not authenticate with the provider or acquire or renew OAuth tokens.
+The default credential kind is `Password`.
+Use `--kind OAuthRefreshToken` only to store an already-acquired refresh token.
+`--secret-stdin` (or `--sieve-password-stdin`) reads one non-empty line from redirected standard input.
+Without that option, password input uses `TRANSIEVER_SIEVE_PASSWORD`, and refresh-token input uses `TRANSIEVER_ACCOUNT_REFRESH_TOKEN`, followed by a non-echoed terminal prompt.
+Secret-valued command-line options are refused and redacted in errors.
+`create`, `list`, `show`, and `update` never retrieve stored secrets.
+
+Credential storage uses Windows Credential Manager, macOS Keychain, or Linux Secret Service when available.
+There is no plaintext fallback.
+`status` reports `Missing`, `Available`, `Expired`, `Rejected`, or `Unavailable` without exposing or displaying a secret.
+An expired or rejected stored password is not reused; supply one-run input or replace it with `login`.
+When storage is unavailable, workflow commands can still use one-run standard-input, environment, or terminal input; `login` reports failure instead of claiming persistence.
+
+`logout` removes both local credential kinds and retains the profile.
+Use `--kind Password` or `--kind OAuthRefreshToken` with `logout` to remove only that kind, or with `status` to inspect only that kind.
+`forget` removes known local credentials before deleting the profile; a credential-removal failure preserves the profile and returns a nonzero exit code.
+Neither operation revokes credentials at the provider.
+Perform any required provider-side revocation separately.

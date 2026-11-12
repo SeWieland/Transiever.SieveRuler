@@ -6,6 +6,13 @@ namespace Transiever.SieveRuler.Cli.UnitTest;
 [Collection("Environment")]
 public sealed class ConfigurationProviderTests
 {
+    private readonly Dictionary<string, string?> environment = new();
+
+    private Provider CreateProvider() => new(
+        () => throw new InvalidOperationException("Unexpected profile access."),
+        () => throw new InvalidOperationException("Unexpected credential access."),
+        key => environment.GetValueOrDefault(key), new ConsoleCliInput());
+
     [Fact]
     public void StandardInputPassword_RejectsTerminalWithoutReading()
     {
@@ -38,7 +45,7 @@ public sealed class ConfigurationProviderTests
         try
         {
             SieveServerConfiguration configuration =
-                new Provider().GetConfiguration(CommandLineOptions.Parse(["preview"]));
+                CreateProvider().GetConfiguration(CommandLineOptions.Parse(["preview"]));
 
             Assert.Equal("sieve.test", configuration.Host);
             Assert.Equal("user", configuration.UserName);
@@ -71,7 +78,7 @@ public sealed class ConfigurationProviderTests
                 ]);
 
             SieveServerConfiguration configuration =
-                new Provider().GetConfiguration(options);
+                CreateProvider().GetConfiguration(options);
 
             Assert.Equal("cli.test", configuration.Host);
             Assert.Equal(4191, configuration.Port);
@@ -96,7 +103,7 @@ public sealed class ConfigurationProviderTests
         Console.SetIn(new StringReader("stdin-password\nunused\n"));
         try
         {
-            SieveServerConfiguration configuration = new Provider().GetConfiguration(
+            SieveServerConfiguration configuration = CreateProvider().GetConfiguration(
                 CommandLineOptions.Parse(["preview", "--sieve-password-stdin"]));
 
             Assert.Equal("stdin-password", configuration.Password);
@@ -122,7 +129,7 @@ public sealed class ConfigurationProviderTests
         Console.SetIn(new StringReader(emptyLine ? "\n" : ""));
         try
         {
-            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => new Provider().GetConfiguration(
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => CreateProvider().GetConfiguration(
                 CommandLineOptions.Parse(["preview", "--sieve-password-stdin"])));
 
             Assert.Equal("Standard input did not contain a Sieve password.", exception.Message);
@@ -134,10 +141,9 @@ public sealed class ConfigurationProviderTests
         }
     }
 
-    private static void Set(string suffix, string value) =>
-        Environment.SetEnvironmentVariable($"TRANSIEVER_SIEVE_{suffix}", value);
+    private void Set(string suffix, string value) => environment[$"TRANSIEVER_SIEVE_{suffix}"] = value;
 
-    private static void Clear()
+    private void Clear()
     {
         foreach (string suffix in new[]
         {
@@ -148,9 +154,7 @@ public sealed class ConfigurationProviderTests
             "SECURITY_MODE"
         })
         {
-            Environment.SetEnvironmentVariable(
-                $"TRANSIEVER_SIEVE_{suffix}",
-                null);
+            environment.Remove($"TRANSIEVER_SIEVE_{suffix}");
         }
     }
 }
