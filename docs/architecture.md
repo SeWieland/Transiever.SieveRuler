@@ -16,6 +16,8 @@ Source adapters discover rules and write `Transiever.SieveRuler` JSON.
 
 The main library is cross-platform `net10.0`, with no console, environment, or source-specific dependency.
 The CLI owns argument parsing, environment configuration, prompts, presentation, and exit codes.
+It references the versioned `Transiever.Common.Cli` package for hidden input, required single-line secrets, and secret-option assignment matching.
+Account commands, configuration precedence, and authentication timing remain CLI-owned; the rules library does not depend on that package.
 
 ## Responsibilities
 
