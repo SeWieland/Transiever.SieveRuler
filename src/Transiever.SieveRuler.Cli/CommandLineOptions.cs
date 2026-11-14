@@ -310,8 +310,7 @@ public sealed class CommandLineOptions
         value is "-h" or "--help" or "help";
 
     private static bool IsSecretOptionValue(string value) =>
-        value.StartsWith("--sieve-password=", StringComparison.OrdinalIgnoreCase) ||
-        value.StartsWith("--sieve-password-stdin=", StringComparison.OrdinalIgnoreCase);
+        Transiever.Common.Cli.SecretOptions.IsAssignment(value, "--sieve-password", "--sieve-password-stdin");
 
     private static string ReadOptionValue(
         IReadOnlyList<string> args,

@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Transiever.SieveRuler\Transiever.SieveRuler.csproj" />
     <PackageReference Include="Transiever.Common.Accounts" Version="1.1.0" />
+    <PackageReference Include="Transiever.Common.Cli" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
