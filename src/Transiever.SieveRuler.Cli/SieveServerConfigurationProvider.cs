@@ -1,4 +1,5 @@
 using Transiever.Common.Accounts;
+using Transiever.Common.Cli;
 using Transiever.SieveRuler.Services;
 
 namespace Transiever.SieveRuler.Cli;
@@ -98,8 +99,6 @@ public sealed class EnvironmentSieveServerConfigurationProvider : ISieveServerCo
     {
         if (!inputIsRedirected)
             throw new InvalidOperationException("--sieve-password-stdin requires redirected standard input.");
-        return Console.ReadLine() is { Length: > 0 } password
-            ? password
-            : throw new InvalidOperationException("Standard input did not contain a Sieve password.");
+        return SecretInput.ReadNonEmptyLine(Console.ReadLine, "Standard input did not contain a Sieve password.");
     }
 }

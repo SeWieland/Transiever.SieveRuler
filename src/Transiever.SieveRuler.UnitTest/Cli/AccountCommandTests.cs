@@ -105,6 +105,32 @@ public sealed class AccountCommandTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void Login_EmptyRefreshTokenIsSuppliedWithoutPromptingAndExplicitStdinOverridesIt(bool selectStdin)
+    {
+        var profile = AccountConfigurationTests.Profile();
+        var credentials = new FakeCredentials();
+        using var output = new StringWriter();
+        var app = Application(new FakeProfiles(profile), credentials, output,
+            environment: key => key == "TRANSIEVER_ACCOUNT_REFRESH_TOKEN" ? "" : null);
+        string[] args = ["login", profile.Reference.ToString(), "--kind", "OAuthRefreshToken"];
+
+        if (selectStdin)
+        {
+            Assert.Equal(0, app.Run(AccountCommandOptions.Parse([..args, "--secret-stdin"])));
+            Assert.Equal("stdin-secret", credentials.Get(profile.Reference, CredentialKind.OAuthRefreshToken).Secret);
+        }
+        else
+        {
+            var error = Assert.Throws<InvalidOperationException>(() => app.Run(AccountCommandOptions.Parse(args)));
+            Assert.Equal("A non-empty secret is required.", error.Message);
+            Assert.Equal(CredentialStatus.Missing, credentials.GetStatus(profile.Reference, CredentialKind.OAuthRefreshToken));
+        }
+        Assert.DoesNotContain("stdin-secret", output.ToString());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void Forget_PreservesProfileWhenCredentialsCannotBeDeleted(bool failure)
     {
         var profile = AccountConfigurationTests.Profile();
